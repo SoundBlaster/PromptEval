@@ -35,6 +35,7 @@ def main() -> None:
     runp.add_argument("--suite", required=True)
     runp.add_argument("--prompts", nargs="+", required=True)
     runp.add_argument("--agent", default="noop", choices=["fixture-good", "fixture-bad", "codex", "noop"])
+    runp.add_argument("--model", help="model name for agents that support model selection")
     cmp = sub.add_parser("compare", help="print prompt average scores for a completed run"); cmp.add_argument("--run", required=True)
     rep = sub.add_parser("report", help="print report.md for a completed run"); rep.add_argument("--run", required=True)
     args = parser.parse_args()
@@ -46,7 +47,7 @@ def main() -> None:
         print("Prompts:")
         for p in (root / "prompts").rglob("*.md"): print(f"- {p.relative_to(root)}")
     elif args.cmd == "run":
-        run_dir = run_suite(root, args.suite, [root / p for p in args.prompts], args.agent)
+        run_dir = run_suite(root, args.suite, [root / p for p in args.prompts], args.agent, args.model)
         print(run_dir)
     elif args.cmd == "compare":
         compare_run(Path(args.run))
