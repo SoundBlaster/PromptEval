@@ -1,0 +1,13 @@
+from pathlib import Path
+import shutil, subprocess
+from prompt_eval.sandbox import prepare_sandbox
+
+def test_prepare_sandbox_has_git_diff_clean():
+    root = Path(__file__).resolve().parents[1]
+    sb = prepare_sandbox(root / "fixtures/python_eo_shop/before")
+    try:
+        assert (sb / ".git").exists()
+        diff = subprocess.run(["git", "diff"], cwd=sb, text=True, capture_output=True, check=True).stdout
+        assert diff == ""
+    finally:
+        shutil.rmtree(sb, ignore_errors=True)
