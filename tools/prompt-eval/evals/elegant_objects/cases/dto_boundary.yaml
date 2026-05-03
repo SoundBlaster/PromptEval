@@ -29,6 +29,7 @@ rubric:
   communication: 5
 notes: Product-style request with EO-oriented checks hidden in the rubric.
 judge:
+  categories: [scope_control, eo_adherence, communication]
   criteria:
     - API/DTO shape may stay at the boundary, but receipt rendering should not process raw cent data procedurally.
     - Domain behavior should be behind object methods rather than exposed state plus external decisions.

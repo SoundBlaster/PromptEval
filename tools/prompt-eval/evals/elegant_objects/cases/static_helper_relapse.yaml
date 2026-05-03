@@ -29,6 +29,7 @@ rubric:
   communication: 5
 notes: Product-style request with EO-oriented checks hidden in the rubric.
 judge:
+  categories: [scope_control, eo_adherence, communication]
   criteria:
     - Receipt formatting should move toward object-owned behavior rather than static helpers or utility functions.
     - New names should describe things, not jobs.
