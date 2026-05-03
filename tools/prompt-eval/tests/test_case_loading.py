@@ -23,6 +23,7 @@ def test_elegant_objects_suite_declares_tuning_and_validation_sets():
     assert {case.fixture for case in validation} == {"python_subscription_billing"}
     assert all(case.sets == ["tuning"] for case in tuning)
     assert all(case.sets == ["validation"] for case in validation)
+    assert all(case.judge and case.judge.criteria for case in tuning + validation)
 
 def test_load_suite_accepts_yaml_syntax(tmp_path):
     suite_dir = tmp_path / "evals" / "custom"

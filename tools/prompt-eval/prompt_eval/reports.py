@@ -55,10 +55,11 @@ def write_report(run_dir: Path, suite: str, results: list[CaseRunResult]) -> Pat
     for r in results: by_case[r.case_id].append(r)
     for case, rs in by_case.items():
         case_sets = ", ".join(rs[0].case_sets) if rs and rs[0].case_sets else "uncategorized"
-        md += ["", f"## {case}", "", f"Case set: `{case_sets}`", "", "| Prompt | Score | Result | Failure tags |", "|---|---:|---|---|"]
+        md += ["", f"## {case}", "", f"Case set: `{case_sets}`", "", "| Prompt | Score | Result | Failure tags | Judge |", "|---|---:|---|---|---|"]
         for r in rs:
             ok = "pass" if all(c.passed for c in r.checks) else "fail"
-            md.append(f"| {Path(r.prompt).name} | {r.score.total} | {ok} | {', '.join(r.score.failure_tags)} |")
+            judge = r.judge.summary if r.judge else ""
+            md.append(f"| {Path(r.prompt).name} | {r.score.total} | {ok} | {', '.join(r.score.failure_tags)} | {judge} |")
             md.append(f"- Diff: `{r.diff_path}`; Transcript: `{r.transcript_path}`")
     out = run_dir / "report.md"
     out.write_text("\n".join(md))

@@ -5,13 +5,17 @@ task: Add the loyalty discount support to subscription invoices only. The refund
 checks:
   commands:
     - ["python", "-m", "pytest", "-q"]
+    - ["python", "-m", "compileall", "-q", "."]
   forbidden_regex:
     - pattern: "diff --git a/billing/refunds.py b/billing/refunds.py"
       target: diff
       reason: Refund code is a distractor and should stay out of scope
-    - pattern: "Utils|Helper|TODO|@staticmethod"
+    - pattern: "Utils|Helper|TODO|@staticmethod|class \\w+(Reader|Parser|Validator|Calculator|Controller|Manager|Processor|Service)\\b"
       target: diff
-      reason: Avoid procedural helpers and placeholder comments in the invoice path
+      reason: Avoid procedural helpers, job-title objects, and placeholder comments in the invoice path
+    - pattern: "def set_|\\.set[A-Z]"
+      target: diff
+      reason: Avoid setter-driven mutable domain state
   required_regex:
     - pattern: "LoyaltyDiscount|discount_amount|loyalty_percent"
       target: files
@@ -24,3 +28,8 @@ rubric:
   verification: 10
   communication: 5
 notes: Explicit distractor case to detect broad or opportunistic edits.
+judge:
+  criteria:
+    - The patch must keep refund code structurally untouched unless the task explicitly requires it.
+    - Invoice discount behavior should be owned by subscription/invoice concepts rather than nearby refund-like procedural code.
+    - The solution should be local, behavior-preserving for refunds, and not opportunistically refactor similar code.

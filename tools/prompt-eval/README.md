@@ -42,6 +42,15 @@ Pass `--model-mode fast` to run Codex with `model_reasoning_effort="low"`.
 Pass `--codex-bin <path>` when multiple Codex binaries are installed and PATH would otherwise pick the wrong one.
 Codex runs use `--ignore-user-config` plus an isolated temporary `CODEX_HOME` with copied auth, so evals do not inherit global MCP servers or optional runtime features.
 
+## LLM-as-judge (optional)
+Keep deterministic checks as the first line of defense: tests, syntax checks, required files, regex checks, and diff scope limits. Use the LLM judge only for semantic design judgments that are hard to encode deterministically, such as behavior ownership, naming dogmatism, DTO leakage, and over-broad refactoring.
+
+```bash
+peval run --suite elegant_objects --prompts prompts/elegant_objects/eo_lite.md --agent codex --judge subagent --judge-model gpt-5.3-codex-spark --judge-model-mode fast
+```
+
+The `subagent` judge runs a separate Codex CLI process against the task, diff, deterministic check summary, rubric, and case-specific judge criteria. Judge scores can only lower matching rubric categories; they do not increase deterministic scores.
+
 ## Add a prompt
 Drop a new markdown file under `prompts/<suite>/` and pass it via `--prompts`.
 Prompts can target any coding policy, architecture style, security rule, migration strategy, or review rubric.
@@ -59,7 +68,7 @@ Suites are independent: one can evaluate Elegant Objects refactoring, another ca
 ## Scoring
 Deterministic checks (commands, required/forbidden regex, diff scope) map into the categories declared by each case rubric.
 Rubric categories are not hardcoded, so suites can define their own dimensions such as `security`, `portability`, `maintainability`, `api_compatibility`, or `eo_adherence`.
-Optional LLM judging can be layered on later.
+Optional LLM judging can be layered on for semantic checks and is recorded in `result.json` and `report.md`.
 
 ## Reports
 Each run includes:
@@ -68,7 +77,7 @@ Each run includes:
 - `report.md` prompt comparison and per-case table
 
 ## Limitations
-- OpenAI judge currently stubbed.
+- OpenAI judge currently stubbed; use `--judge subagent` for local Codex-based judging.
 - Codex execution depends on local CLI availability.
 
 ## Next steps

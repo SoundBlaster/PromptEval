@@ -5,13 +5,17 @@ task: Route receipt totals through the existing price representation so receipt 
 checks:
   commands:
     - ["python", "-m", "pytest", "-q"]
+    - ["python", "-m", "compileall", "-q", "."]
   forbidden_regex:
-    - pattern: "Utils|Helper|TODO"
+    - pattern: "Utils|Helper|TODO|class \\w+(Reader|Parser|Validator|Calculator|Controller|Manager|Processor|Service)\\b"
       target: diff
-      reason: Avoid helper dumping grounds and TODO pollution
+      reason: Avoid procedural dumping grounds, job-title objects, and TODO pollution
     - pattern: "@staticmethod"
       target: diff
       reason: Avoid static helper relapse
+    - pattern: "def set_|\\.set[A-Z]"
+      target: diff
+      reason: Avoid setter-driven mutable domain state
   required_regex:
     - pattern: "def total\\(|\\.formatted\\("
       target: files
@@ -24,3 +28,8 @@ rubric:
   verification: 10
   communication: 5
 notes: Product-style request with EO-oriented checks hidden in the rubric.
+judge:
+  criteria:
+    - Receipt total formatting should be owned by a price/total concept, not external procedural code.
+    - Compound names should not be mechanically renamed unless scope or ownership makes a simpler name natural.
+    - The patch should preserve the public API and avoid broad unrelated refactoring.
