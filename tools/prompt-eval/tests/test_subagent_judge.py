@@ -49,6 +49,21 @@ def test_subagent_judge_parse_filters_to_allowed_categories():
 
     assert result.categories == {"eo_adherence": 18}
 
+def test_subagent_judge_parse_honors_empty_allowed_categories():
+    result = _parse(
+        json.dumps(
+            {
+                "categories": {"functional_correctness": 0, "verification": 0, "eo_adherence": 18},
+                "failure_tags": [],
+                "summary": "ok",
+            }
+        ),
+        {"functional_correctness": 40, "verification": 10, "eo_adherence": 25},
+        [],
+    )
+
+    assert result.categories == {}
+
 def test_subagent_prompt_uses_case_rubric_categories():
     case = EvalCase(
         id="security",

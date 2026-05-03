@@ -38,7 +38,7 @@ def _json_payload(text: str) -> dict:
 
 
 def _parse(stdout: str, rubric: dict[str, int], allowed_categories: list[str] | None = None) -> JudgeResult:
-    allowed = set(allowed_categories or rubric)
+    allowed = set(rubric if allowed_categories is None else allowed_categories)
     errors = []
     for text in list(reversed(_message_texts(stdout))) + [stdout]:
         try:
