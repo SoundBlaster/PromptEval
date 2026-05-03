@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any
+from .judges.base import JudgeResult
 
 DEFAULT_RUBRIC = {
     "functional_correctness": 40,
@@ -16,6 +17,7 @@ class RegexCheck:
     pattern: str
     target: str = "diff"
     reason: str = ""
+    paths: list[str] = field(default_factory=list)
 
 @dataclass
 class CaseChecks:
@@ -26,6 +28,10 @@ class CaseChecks:
     max_changed_files: int | None = None
 
 @dataclass
+class CaseJudge:
+    criteria: list[str] = field(default_factory=list)
+
+@dataclass
 class EvalCase:
     id: str
     title: str
@@ -34,6 +40,8 @@ class EvalCase:
     checks: CaseChecks
     rubric: dict[str, int]
     notes: str = ""
+    sets: list[str] = field(default_factory=list)
+    judge: CaseJudge | None = None
 
 @dataclass
 class CheckResult:
@@ -57,6 +65,8 @@ class CaseRunResult:
     checks: list[CheckResult]
     diff_path: str
     transcript_path: str
+    case_sets: list[str] = field(default_factory=list)
+    judge: JudgeResult | None = None
     stdout: str = ""
     stderr: str = ""
 

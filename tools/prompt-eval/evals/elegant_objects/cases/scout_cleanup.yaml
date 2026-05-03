@@ -1,21 +1,25 @@
 id: scout_cleanup
-title: scout_cleanup
+title: Receipt maintenance cleanup
 fixture: python_eo_shop
-task: Implement scout_cleanup behavior in EO style while preserving tests.
+task: Improve the receipt total path while leaving unrelated files and behavior alone. Keep the change easy to review.
 checks:
   commands:
     - ["python", "-m", "pytest", "-q"]
+    - ["python", "-m", "compileall", "-q", "."]
   forbidden_regex:
-    - pattern: "Utils|Helper|TODO"
+    - pattern: "Utils|Helper|TODO|class \\w+(Reader|Parser|Validator|Calculator|Controller|Manager|Processor|Service)\\b"
       target: diff
-      reason: Avoid helper dumping grounds and TODO pollution
+      reason: Avoid procedural dumping grounds, job-title objects, and TODO pollution
     - pattern: "@staticmethod"
       target: diff
       reason: Avoid static helper relapse
+    - pattern: "def set_|\\.set[A-Z]"
+      target: diff
+      reason: Avoid setter-driven mutable domain state
   required_regex:
-    - pattern: "class .*Receipt|class .*Price|class .*Order"
+    - pattern: "def total\\(|\\.formatted\\("
       target: files
-      reason: Expect object-focused behavior
+      reason: Expect the change to move behavior to the existing price abstraction
   max_changed_files: 6
 rubric:
   functional_correctness: 40
@@ -23,4 +27,9 @@ rubric:
   eo_adherence: 25
   verification: 10
   communication: 5
-notes: EO-focused check for scout_cleanup.
+notes: Product-style request with EO-oriented checks hidden in the rubric.
+judge:
+  criteria:
+    - Local cleanup is acceptable only when it is in the same receipt/pricing area and behavior-preserving.
+    - The patch should improve behavior ownership without silently starting a broad EO rewrite.
+    - Larger EO opportunities should remain outside the patch scope.

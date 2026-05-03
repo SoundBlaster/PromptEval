@@ -1,21 +1,25 @@
 id: dto_boundary
-title: dto_boundary
+title: Receipt API compatibility
 fixture: python_eo_shop
-task: Implement dto_boundary behavior in EO style while preserving tests.
+task: Preserve receipt API output while reducing the amount of raw cent arithmetic in rendering code.
 checks:
   commands:
     - ["python", "-m", "pytest", "-q"]
+    - ["python", "-m", "compileall", "-q", "."]
   forbidden_regex:
-    - pattern: "Utils|Helper|TODO"
+    - pattern: "Utils|Helper|TODO|class \\w+(Reader|Parser|Validator|Calculator|Controller|Manager|Processor|Service)\\b"
       target: diff
-      reason: Avoid helper dumping grounds and TODO pollution
+      reason: Avoid procedural dumping grounds, job-title objects, and TODO pollution
     - pattern: "@staticmethod"
       target: diff
       reason: Avoid static helper relapse
+    - pattern: "def set_|\\.set[A-Z]"
+      target: diff
+      reason: Avoid setter-driven mutable domain state
   required_regex:
-    - pattern: "class .*Receipt|class .*Price|class .*Order"
+    - pattern: "def total\\(|\\.formatted\\("
       target: files
-      reason: Expect object-focused behavior
+      reason: Expect formatting behavior to remain behind a domain method
   max_changed_files: 6
 rubric:
   functional_correctness: 40
@@ -23,4 +27,9 @@ rubric:
   eo_adherence: 25
   verification: 10
   communication: 5
-notes: EO-focused check for dto_boundary.
+notes: Product-style request with EO-oriented checks hidden in the rubric.
+judge:
+  criteria:
+    - API/DTO shape may stay at the boundary, but receipt rendering should not process raw cent data procedurally.
+    - Domain behavior should be behind object methods rather than exposed state plus external decisions.
+    - The patch should avoid changing boundary fields merely to satisfy EO style.

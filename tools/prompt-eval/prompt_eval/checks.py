@@ -1,5 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
+import fnmatch
 import re, shlex, subprocess
 from .models import EvalCase, CheckResult
 
@@ -23,7 +24,7 @@ def command_name(cmd: str | list[str]) -> str:
     return shlex.join(command_argv(cmd))
 
 
-def python_files_blob(sandbox: Path) -> str:
+def python_files_blob(sandbox: Path, patterns: list[str] | None = None) -> str:
     proc = subprocess.run(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard", "--", "*.py"],
         cwd=sandbox,
@@ -33,6 +34,8 @@ def python_files_blob(sandbox: Path) -> str:
     )
     chunks = []
     for rel in proc.stdout.splitlines():
+        if patterns and not any(fnmatch.fnmatch(rel, pattern) for pattern in patterns):
+            continue
         path = sandbox / rel
         if any(part in SKIP_FILE_PARTS for part in path.relative_to(sandbox).parts):
             continue
@@ -47,13 +50,12 @@ def run_checks(case: EvalCase, sandbox: Path, diff: str) -> list[CheckResult]:
         out.append(CheckResult(p.returncode == 0, f"command:{command_name(cmd)}", (p.stdout + p.stderr)[-400:]))
     for req in case.checks.required_files:
         out.append(CheckResult((sandbox / req).exists(), f"required_file:{req}"))
-    files_blob = python_files_blob(sandbox)
     for rr in case.checks.required_regex:
-        hay = diff if rr.target == "diff" else files_blob
+        hay = diff if rr.target == "diff" else python_files_blob(sandbox, rr.paths)
         ok = bool(re.search(rr.pattern, hay, re.MULTILINE))
         out.append(CheckResult(ok, f"required_regex:{rr.pattern}", rr.reason))
     for fr in case.checks.forbidden_regex:
-        hay = diff if fr.target == "diff" else files_blob
+        hay = diff if fr.target == "diff" else python_files_blob(sandbox, fr.paths)
         ok = not bool(re.search(fr.pattern, hay, re.MULTILINE))
         out.append(CheckResult(ok, f"forbidden_regex:{fr.pattern}", fr.reason))
     if case.checks.max_changed_files is not None:

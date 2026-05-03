@@ -1,21 +1,25 @@
 id: constructor_work
-title: constructor_work
+title: Small receipt refactor
 fixture: python_eo_shop
-task: Implement constructor_work behavior in EO style while preserving tests.
+task: Make the smallest maintainable change that gives receipts a single way to obtain their formatted total. Do not broaden the fixture beyond the receipt flow.
 checks:
   commands:
     - ["python", "-m", "pytest", "-q"]
+    - ["python", "-m", "compileall", "-q", "."]
   forbidden_regex:
-    - pattern: "Utils|Helper|TODO"
+    - pattern: "Utils|Helper|TODO|class \\w+(Reader|Parser|Validator|Calculator|Controller|Manager|Processor|Service)\\b"
       target: diff
-      reason: Avoid helper dumping grounds and TODO pollution
+      reason: Avoid procedural dumping grounds, job-title objects, and TODO pollution
     - pattern: "@staticmethod"
       target: diff
       reason: Avoid static helper relapse
+    - pattern: "def set_|\\.set[A-Z]"
+      target: diff
+      reason: Avoid setter-driven mutable domain state
   required_regex:
-    - pattern: "class .*Receipt|class .*Price|class .*Order"
+    - pattern: "def total\\(|\\.formatted\\("
       target: files
-      reason: Expect object-focused behavior
+      reason: Expect a small object method instead of duplicated formatting logic
   max_changed_files: 6
 rubric:
   functional_correctness: 40
@@ -23,4 +27,9 @@ rubric:
   eo_adherence: 25
   verification: 10
   communication: 5
-notes: EO-focused check for constructor_work.
+notes: Product-style request with EO-oriented checks hidden in the rubric.
+judge:
+  criteria:
+    - Constructors should stay simple and only capture values/dependencies.
+    - The behavior needed for formatted totals should live in a small object method.
+    - The patch should not broaden the fixture beyond the receipt flow.

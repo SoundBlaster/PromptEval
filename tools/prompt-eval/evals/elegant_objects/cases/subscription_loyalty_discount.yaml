@@ -1,0 +1,40 @@
+id: subscription_loyalty_discount
+title: Subscription loyalty discount
+fixture: python_subscription_billing
+task: Add an optional loyalty discount percentage to subscription invoice rendering. The invoice should show the discount line only when a discount is applied, keep the existing no-discount output compatible, and preserve refund behavior.
+checks:
+  commands:
+    - ["python", "-m", "pytest", "-q"]
+    - ["python", "-m", "compileall", "-q", "."]
+  forbidden_regex:
+    - pattern: "Utils|Helper|TODO|class \\w+(Reader|Parser|Validator|Calculator|Controller|Manager|Processor|Service)\\b"
+      target: diff
+      reason: Avoid dumping billing behavior into procedural or job-title objects
+    - pattern: "@staticmethod"
+      target: diff
+      reason: Avoid static procedural calculation hooks
+    - pattern: "def set_|\\.set[A-Z]"
+      target: diff
+      reason: Avoid setter-driven mutable domain state
+  required_regex:
+    - pattern: "class .*Discount|def discount_amount\\(|def total\\("
+      target: files
+      paths: ["billing/api.py", "billing/invoices.py", "billing/subscriptions.py"]
+      reason: Expect discount behavior to be represented by domain behavior
+    - pattern: "loyalty_percent"
+      target: files
+      paths: ["billing/api.py", "billing/invoices.py", "billing/subscriptions.py"]
+      reason: Expect the public invoice API to expose the requested option
+  max_changed_files: 7
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: Medium-size fixture with realistic billing flow and distractor refund code.
+judge:
+  criteria:
+    - Loyalty discount behavior should be represented by invoice/subscription domain behavior, not procedural calculation glue.
+    - DTO/API parameters may expose the requested option, but domain calculations should use behavior-rich objects.
+    - The no-discount invoice behavior and refund behavior should stay compatible.
