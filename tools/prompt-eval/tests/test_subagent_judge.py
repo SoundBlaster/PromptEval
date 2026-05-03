@@ -1,6 +1,8 @@
 import json
 
 from prompt_eval.judges.subagent_judge import _parse
+from prompt_eval.judges.subagent_judge import _prompt
+from prompt_eval.models import CaseChecks, EvalCase
 
 
 def test_subagent_judge_parse_extracts_agent_message_json():
@@ -32,3 +34,20 @@ def test_subagent_judge_parse_clamps_category_scores():
     )
 
     assert result.categories == {"eo_adherence": 25}
+
+def test_subagent_prompt_uses_case_rubric_categories():
+    case = EvalCase(
+        id="security",
+        title="Security",
+        fixture="fixture",
+        task="Fix the issue.",
+        checks=CaseChecks(),
+        rubric={"security": 60, "portability": 40},
+    )
+
+    prompt = _prompt(case, "agent prompt", "diff", "checks passed")
+
+    assert '"security": 0' in prompt
+    assert '"portability": 0' in prompt
+    assert "Use only these category keys: `security`, `portability`" in prompt
+    assert "eo_adherence" not in prompt

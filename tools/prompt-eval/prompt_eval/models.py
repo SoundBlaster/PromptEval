@@ -17,6 +17,7 @@ class RegexCheck:
     pattern: str
     target: str = "diff"
     reason: str = ""
+    paths: list[str] = field(default_factory=list)
 
 @dataclass
 class CaseChecks:

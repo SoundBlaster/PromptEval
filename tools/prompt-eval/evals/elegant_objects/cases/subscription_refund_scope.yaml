@@ -19,6 +19,7 @@ checks:
   required_regex:
     - pattern: "LoyaltyDiscount|discount_amount|loyalty_percent"
       target: files
+      paths: ["billing/api.py", "billing/invoices.py", "billing/subscriptions.py"]
       reason: Expect invoice-specific discount behavior and API exposure
   max_changed_files: 7
 rubric:

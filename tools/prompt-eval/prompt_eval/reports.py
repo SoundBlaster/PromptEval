@@ -31,6 +31,10 @@ def _label(key: str) -> str:
     return key.replace("_", " ").title()
 
 
+def _cell(value) -> str:
+    return str(value).replace("\n", "<br>").replace("|", "\\|")
+
+
 def write_report(run_dir: Path, suite: str, results: list[CaseRunResult]) -> Path:
     md = ["# Prompt Eval Report", "", f"Suite: {suite}", f"Run: {run_dir.name}", ""]
     category_keys = _category_keys(results)
@@ -59,7 +63,7 @@ def write_report(run_dir: Path, suite: str, results: list[CaseRunResult]) -> Pat
         for r in rs:
             ok = "pass" if all(c.passed for c in r.checks) else "fail"
             judge = r.judge.summary if r.judge else ""
-            md.append(f"| {Path(r.prompt).name} | {r.score.total} | {ok} | {', '.join(r.score.failure_tags)} | {judge} |")
+            md.append(f"| {_cell(Path(r.prompt).name)} | {r.score.total} | {_cell(ok)} | {_cell(', '.join(r.score.failure_tags))} | {_cell(judge)} |")
             md.append(f"- Diff: `{r.diff_path}`; Transcript: `{r.transcript_path}`")
     out = run_dir / "report.md"
     out.write_text("\n".join(md))

@@ -10,6 +10,26 @@ def test_codex_missing_graceful(tmp_path, monkeypatch):
     assert not r.ok
     assert "not found" in r.stderr
 
+def test_codex_missing_reports_selected_binary(tmp_path, monkeypatch):
+    monkeypatch.setattr(shutil, "which", lambda _: None)
+    r = run_codex(tmp_path, "task", "prompt", codex_bin="/missing/codex")
+    assert not r.ok
+    assert "--codex-bin '/missing/codex'" in r.stderr
+
+def test_codex_missing_reports_env_binary(tmp_path, monkeypatch):
+    monkeypatch.setenv("PEVAL_CODEX_BIN", "/missing/env-codex")
+    monkeypatch.setattr(shutil, "which", lambda _: None)
+    r = run_codex(tmp_path, "task", "prompt")
+    assert not r.ok
+    assert "PEVAL_CODEX_BIN='/missing/env-codex'" in r.stderr
+
+def test_codex_unsupported_model_mode_graceful(tmp_path, monkeypatch):
+    monkeypatch.setattr(shutil, "which", lambda _: "/usr/bin/codex")
+    r = run_codex(tmp_path, "task", "prompt", model_mode="turbo")
+    assert not r.ok
+    assert "unsupported model mode 'turbo'" in r.stderr
+    assert "fast" in r.stderr
+
 def test_codex_model_flag(tmp_path, monkeypatch):
     calls = []
     monkeypatch.setattr(shutil, "which", lambda _: "/usr/bin/codex")

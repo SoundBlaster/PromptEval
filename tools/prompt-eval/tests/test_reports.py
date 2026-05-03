@@ -61,9 +61,9 @@ def test_report_includes_judge_summary(tmp_path):
         checks=[],
         diff_path="diff.patch",
         transcript_path="trace.jsonl",
-        judge=JudgeResult(categories={"design": 10}, failure_tags=[], summary="object ownership is acceptable"),
+        judge=JudgeResult(categories={"design": 10}, failure_tags=[], summary="object ownership | acceptable\nsecond line"),
     )
     write_report(tmp_path, "generic", [result])
     report = (tmp_path / "report.md").read_text()
     assert "| Prompt | Score | Result | Failure tags | Judge |" in report
-    assert "object ownership is acceptable" in report
+    assert "object ownership \\| acceptable<br>second line" in report

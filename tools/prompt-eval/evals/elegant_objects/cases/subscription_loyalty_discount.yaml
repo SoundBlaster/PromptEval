@@ -19,9 +19,11 @@ checks:
   required_regex:
     - pattern: "class .*Discount|def discount_amount\\(|def total\\("
       target: files
+      paths: ["billing/api.py", "billing/invoices.py", "billing/subscriptions.py"]
       reason: Expect discount behavior to be represented by domain behavior
     - pattern: "loyalty_percent"
       target: files
+      paths: ["billing/api.py", "billing/invoices.py", "billing/subscriptions.py"]
       reason: Expect the public invoice API to expose the requested option
   max_changed_files: 7
 rubric:

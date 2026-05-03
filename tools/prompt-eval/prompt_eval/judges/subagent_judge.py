@@ -62,17 +62,20 @@ def _parse(stdout: str, rubric: dict[str, int]) -> JudgeResult:
 def _prompt(case: EvalCase, prompt_text: str, diff: str, deterministic_summary: str) -> str:
     criteria = "\n".join(f"- {item}" for item in (case.judge.criteria if case.judge else []))
     rubric = json.dumps(case.rubric, indent=2, sort_keys=True)
+    example_categories = json.dumps({key: 0 for key in case.rubric}, sort_keys=True)
+    allowed_categories = ", ".join(f"`{key}`" for key in case.rubric)
     return f"""You are a strict LLM-as-judge for a coding-agent prompt evaluation.
 
 Do not edit files. Judge only the submitted patch.
 
 Return exactly one JSON object with this shape:
 {{
-  "categories": {{"scope_control": 0, "eo_adherence": 0, "communication": 0}},
+  "categories": {example_categories},
   "failure_tags": ["short_tag_if_any"],
   "summary": "one short sentence"
 }}
 
+Use only these category keys: {allowed_categories}. You may omit categories that do not need semantic judgment.
 Score only categories that require semantic judgment. Do not increase scores for deterministic checks; those are handled separately. Keep category values within this rubric:
 {rubric}
 

@@ -35,6 +35,15 @@ def codex_command(codex_bin: str | None = None) -> str | None:
     return "codex" if shutil.which("codex") else None
 
 
+def codex_error(codex_bin: str | None = None) -> str:
+    if codex_bin:
+        return f"codex CLI not found: --codex-bin {codex_bin!r} did not resolve as a path or PATH command"
+    env_bin = os.environ.get("PEVAL_CODEX_BIN")
+    if env_bin:
+        return f"codex CLI not found: PEVAL_CODEX_BIN={env_bin!r} did not resolve as a path or PATH command"
+    return "codex CLI not found"
+
+
 def run_codex(
     sandbox: Path,
     task: str,
@@ -45,7 +54,10 @@ def run_codex(
 ) -> AgentRun:
     executable = codex_command(codex_bin)
     if executable is None:
-        return AgentRun(ok=False, stderr="codex CLI not found", trace=[{"event":"codex_missing"}])
+        return AgentRun(ok=False, stderr=codex_error(codex_bin), trace=[{"event":"codex_missing"}])
+    if model_mode and model_mode not in MODEL_MODE_CONFIG:
+        supported = ", ".join(sorted(MODEL_MODE_CONFIG))
+        return AgentRun(ok=False, stderr=f"unsupported model mode {model_mode!r}; supported modes: {supported}", trace=[{"event":"codex_unsupported_model_mode", "model_mode":model_mode}])
     (sandbox / "AGENTS.md").write_text(prompt_text)
     cmd = [executable, "exec", "--ignore-user-config", "--json", "--full-auto"]
     if model:
