@@ -1,0 +1,39 @@
+{
+  "id": "dto_boundary",
+  "title": "dto_boundary",
+  "fixture": "python_eo_shop",
+  "task": "Implement dto_boundary behavior in EO style while preserving tests.",
+  "checks": {
+    "commands": [
+      "python -m pytest -q"
+    ],
+    "forbidden_regex": [
+      {
+        "pattern": "Utils|Helper|TODO",
+        "target": "diff",
+        "reason": "Avoid helper dumping grounds and TODO pollution"
+      },
+      {
+        "pattern": "@staticmethod",
+        "target": "diff",
+        "reason": "Avoid static helper relapse"
+      }
+    ],
+    "required_regex": [
+      {
+        "pattern": "class .*Receipt|class .*Price|class .*Order",
+        "target": "files",
+        "reason": "Expect object-focused behavior"
+      }
+    ],
+    "max_changed_files": 6
+  },
+  "rubric": {
+    "functional_correctness": 40,
+    "scope_control": 20,
+    "eo_adherence": 25,
+    "verification": 10,
+    "communication": 5
+  },
+  "notes": "EO-focused check for dto_boundary."
+}
