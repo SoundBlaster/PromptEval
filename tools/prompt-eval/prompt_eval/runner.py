@@ -12,7 +12,7 @@ from .agents.codex_agent import run_codex
 from .reports import write_report
 
 
-def run_suite(root: Path, suite: str, prompts: list[Path], agent: str, model: str | None = None) -> Path:
+def run_suite(root: Path, suite: str, prompts: list[Path], agent: str, model: str | None = None, model_mode: str | None = None) -> Path:
     run_id = f"{datetime.datetime.utcnow().strftime('%Y%m%d-%H%M%S-%f')}-{uuid.uuid4().hex[:8]}"
     run_dir = root / "runs" / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -29,7 +29,7 @@ def run_suite(root: Path, suite: str, prompts: list[Path], agent: str, model: st
                 elif agent == "fixture-bad":
                     ar = apply_fixture_solution(sandbox, fixture_root, "bad")
                 elif agent == "codex":
-                    ar = run_codex(sandbox, case.task, ptxt, model)
+                    ar = run_codex(sandbox, case.task, ptxt, model, model_mode)
                 else:
                     ar = run_mock(case.task)
                 diff = git_diff(sandbox)

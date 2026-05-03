@@ -26,6 +26,7 @@ peval run --suite elegant_objects --prompts prompts/elegant_objects/eo_lite.md -
 ```
 If `codex` CLI is not installed, run is marked gracefully with a clear error.
 Pass `--model <name>` to select a Codex model, for example `--model gpt-5.3-codex-spark`.
+Pass `--model-mode fast` to run Codex with `model_reasoning_effort="low"`.
 
 ## Add a prompt
 Drop a new markdown file under `prompts/<suite>/` and pass it via `--prompts`.

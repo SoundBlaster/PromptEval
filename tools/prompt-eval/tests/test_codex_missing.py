@@ -20,3 +20,26 @@ def test_codex_model_flag(tmp_path, monkeypatch):
     r = run_codex(tmp_path, "task", "prompt", model="gpt-5.3-codex-spark")
     assert r.ok
     assert calls[0] == ["codex", "exec", "--json", "--full-auto", "--model", "gpt-5.3-codex-spark", "task"]
+
+def test_codex_fast_model_mode(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(shutil, "which", lambda _: "/usr/bin/codex")
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    r = run_codex(tmp_path, "task", "prompt", model="gpt-5.3-codex-spark", model_mode="fast")
+    assert r.ok
+    assert calls[0] == [
+        "codex",
+        "exec",
+        "--json",
+        "--full-auto",
+        "--model",
+        "gpt-5.3-codex-spark",
+        "--config",
+        'model_reasoning_effort="low"',
+        "task",
+    ]
