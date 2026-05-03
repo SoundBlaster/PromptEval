@@ -29,6 +29,7 @@ rubric:
   communication: 5
 notes: Product-style request with EO-oriented checks hidden in the rubric.
 judge:
+  categories: [scope_control, eo_adherence, communication]
   criteria:
     - Receipt total formatting should be owned by a price/total concept, not external procedural code.
     - Compound names should not be mechanically renamed unless scope or ownership makes a simpler name natural.

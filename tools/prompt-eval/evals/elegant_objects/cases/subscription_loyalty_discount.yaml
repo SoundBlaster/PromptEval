@@ -34,6 +34,7 @@ rubric:
   communication: 5
 notes: Medium-size fixture with realistic billing flow and distractor refund code.
 judge:
+  categories: [scope_control, eo_adherence, communication]
   criteria:
     - Loyalty discount behavior should be represented by invoice/subscription domain behavior, not procedural calculation glue.
     - DTO/API parameters may expose the requested option, but domain calculations should use behavior-rich objects.

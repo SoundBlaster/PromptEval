@@ -39,7 +39,7 @@ def load_case(path: Path, sets: list[str] | None = None) -> EvalCase:
     case_checks = CaseChecks(commands=checks.get("commands", []), required_files=checks.get("required_files", []), forbidden_regex=mk(checks.get("forbidden_regex")), required_regex=mk(checks.get("required_regex")), max_changed_files=checks.get("max_changed_files"))
     case_sets = _unique(_list(raw.get("sets")) + _list(sets))
     judge_raw = raw.get("judge")
-    judge = CaseJudge(criteria=_list(judge_raw.get("criteria"))) if isinstance(judge_raw, dict) else None
+    judge = CaseJudge(criteria=_list(judge_raw.get("criteria")), categories=_list(judge_raw.get("categories"))) if isinstance(judge_raw, dict) else None
     return EvalCase(id=raw["id"], title=raw["title"], fixture=raw["fixture"], task=raw["task"], checks=case_checks, rubric=raw.get("rubric", {}), notes=raw.get("notes", ""), sets=case_sets, judge=judge)
 
 def load_suite(root: Path, suite_name: str, case_sets: list[str] | None = None) -> list[EvalCase]:

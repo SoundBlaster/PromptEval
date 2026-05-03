@@ -30,6 +30,7 @@ rubric:
   communication: 5
 notes: Explicit distractor case to detect broad or opportunistic edits.
 judge:
+  categories: [scope_control, eo_adherence, communication]
   criteria:
     - The patch must keep refund code structurally untouched unless the task explicitly requires it.
     - Invoice discount behavior should be owned by subscription/invoice concepts rather than nearby refund-like procedural code.

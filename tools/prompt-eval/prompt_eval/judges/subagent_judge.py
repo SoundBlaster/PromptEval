@@ -37,7 +37,8 @@ def _json_payload(text: str) -> dict:
     return json.loads(stripped[start : end + 1])
 
 
-def _parse(stdout: str, rubric: dict[str, int]) -> JudgeResult:
+def _parse(stdout: str, rubric: dict[str, int], allowed_categories: list[str] | None = None) -> JudgeResult:
+    allowed = set(rubric if allowed_categories is None else allowed_categories)
     errors = []
     for text in list(reversed(_message_texts(stdout))) + [stdout]:
         try:
@@ -45,7 +46,7 @@ def _parse(stdout: str, rubric: dict[str, int]) -> JudgeResult:
             raw_categories = payload.get("categories", {})
             categories = {}
             for key, value in raw_categories.items():
-                if key not in rubric:
+                if key not in rubric or key not in allowed:
                     continue
                 categories[key] = max(0, min(int(value), int(rubric[key])))
             return JudgeResult(
@@ -59,11 +60,20 @@ def _parse(stdout: str, rubric: dict[str, int]) -> JudgeResult:
     return JudgeResult(categories={}, failure_tags=["judge_parse_failed"], summary="; ".join(errors[-2:]), raw=stdout)
 
 
+def _judge_categories(case: EvalCase) -> list[str]:
+    if case.judge and case.judge.categories:
+        return [key for key in case.judge.categories if key in case.rubric]
+    semantic_defaults = ["scope_control", "eo_adherence", "communication", "design_quality", "maintainability"]
+    selected = [key for key in semantic_defaults if key in case.rubric]
+    return selected or list(case.rubric)
+
+
 def _prompt(case: EvalCase, prompt_text: str, diff: str, deterministic_summary: str) -> str:
     criteria = "\n".join(f"- {item}" for item in (case.judge.criteria if case.judge else []))
     rubric = json.dumps(case.rubric, indent=2, sort_keys=True)
-    example_categories = json.dumps({key: 0 for key in case.rubric}, sort_keys=True)
-    allowed_categories = ", ".join(f"`{key}`" for key in case.rubric)
+    judge_categories = _judge_categories(case)
+    example_categories = json.dumps({key: case.rubric[key] for key in judge_categories}, sort_keys=True)
+    allowed_categories = ", ".join(f"`{key}`" for key in judge_categories)
     return f"""You are a strict LLM-as-judge for a coding-agent prompt evaluation.
 
 Do not edit files. Judge only the submitted patch.
@@ -75,8 +85,9 @@ Return exactly one JSON object with this shape:
   "summary": "one short sentence"
 }}
 
-Use only these category keys: {allowed_categories}. You may omit categories that do not need semantic judgment.
-Score only categories that require semantic judgment. Do not increase scores for deterministic checks; those are handled separately. Keep category values within this rubric:
+The category values above are examples at the maximum score. For each category, return an integer from 0 to that category's rubric maximum: 0 means severe semantic failure; the rubric maximum means fully satisfied.
+Use only these semantic category keys: {allowed_categories}. You may omit categories that do not need semantic judgment.
+Do not score deterministic categories such as functional correctness or verification unless they are explicitly listed above. Do not increase scores for deterministic checks; those are handled separately. Keep category values within this rubric:
 {rubric}
 
 Task:
@@ -128,7 +139,7 @@ def judge_subagent(
         if proc.returncode != 0:
             detail = (proc.stdout + proc.stderr)[-800:]
             return JudgeResult(categories={}, failure_tags=["judge_failed"], summary=detail, raw=proc.stdout)
-        return _parse(proc.stdout, case.rubric)
+        return _parse(proc.stdout, case.rubric, _judge_categories(case))
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
         shutil.rmtree(codex_home, ignore_errors=True)

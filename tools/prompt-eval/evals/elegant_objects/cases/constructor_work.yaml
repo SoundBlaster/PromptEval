@@ -29,6 +29,7 @@ rubric:
   communication: 5
 notes: Product-style request with EO-oriented checks hidden in the rubric.
 judge:
+  categories: [scope_control, eo_adherence, communication]
   criteria:
     - Constructors should stay simple and only capture values/dependencies.
     - The behavior needed for formatted totals should live in a small object method.

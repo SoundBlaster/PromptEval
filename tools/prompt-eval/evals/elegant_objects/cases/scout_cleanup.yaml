@@ -29,6 +29,7 @@ rubric:
   communication: 5
 notes: Product-style request with EO-oriented checks hidden in the rubric.
 judge:
+  categories: [scope_control, eo_adherence, communication]
   criteria:
     - Local cleanup is acceptable only when it is in the same receipt/pricing area and behavior-preserving.
     - The patch should improve behavior ownership without silently starting a broad EO rewrite.

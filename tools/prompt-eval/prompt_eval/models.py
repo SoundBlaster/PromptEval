@@ -30,6 +30,7 @@ class CaseChecks:
 @dataclass
 class CaseJudge:
     criteria: list[str] = field(default_factory=list)
+    categories: list[str] = field(default_factory=list)
 
 @dataclass
 class EvalCase:
