@@ -1,0 +1,81 @@
+id: eo_constructor_work_trap
+title: Defer constructor work for object initialization
+fixture: eo_constructor_work_trap
+task: 'The constructor currently performs file parsing as soon as the object is created.
+
+  Refactor the implementation to follow Elegant Objects principles by moving that
+
+  work out of `__init__` and into behavior methods through deferred loading.
+
+  The class should load data only when `price_of` is called, while preserving
+
+  public behavior. Keep the existing API stable.
+
+  '
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: self._prices is None
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def _ensure_loaded
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: from_path
+    target: diff
+    reason: Generated deterministic design signal
+  max_changed_files: 7
+  forbidden_regex: []
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: 'This case checks that parser/IO is not executed during construction and that
+
+  data loading is deferred until first use. The bad solution keeps eager
+
+  initialization and is expected to fail the updated tests in `good`.
+
+  '
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - 'Price lookups must keep returning correct values and work with the same
+
+    input data format across all variants.
+
+    '
+  - 'Keep the implementation minimal and localized; avoid changing public
+
+    behavior or introducing unrelated abstractions.
+
+    '
+  - 'Construction should not perform heavy work. Loading should be deferred to
+
+    the behavior path via an explicit ensure-load mechanism.
+
+    '
+  - 'Updated tests should deterministically catch eager initialization behavior.
+
+    '
+  - 'The solution should clearly express the refactoring intent with small,
+
+    cohesive changes.
+
+    '
+sets:
+- generated

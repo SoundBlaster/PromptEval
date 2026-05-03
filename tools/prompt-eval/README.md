@@ -61,6 +61,16 @@ Each case points at a fixture, a task, deterministic checks, and a rubric.
 Represent shell commands as argv lists, for example `["python", "-m", "pytest", "-q"]`.
 Prefer adding new prompt-tuning cases under a `tuning` set and new held-out checks under `validation`.
 
+## Generate a draft eval case
+Use Codex Spark fast to turn a text task description into a reviewable draft fixture:
+```bash
+peval generate-case "Add an invoice tax rule task where the good solution keeps tax behavior in domain objects and the bad solution uses a TaxHelper"
+```
+
+The generator writes `generated-cases/<case-id>/` with `before/`, `good/`, `bad/`, and `case.yaml`.
+Review the draft before promoting it into `fixtures/<case-id>/` and `evals/<suite>/cases/<case-id>.yaml`.
+Pass `--case-id`, `--description-file`, `--model`, `--model-mode fast`, or `--codex-bin` when needed.
+
 ## Add a suite
 Create a new directory under `evals/<suite>/`, add a `suite.yaml`, and place matching prompts under `prompts/<suite>/`.
 Suites are independent: one can evaluate Elegant Objects refactoring, another can evaluate secure coding, API migrations, performance fixes, or project-specific agent behavior.

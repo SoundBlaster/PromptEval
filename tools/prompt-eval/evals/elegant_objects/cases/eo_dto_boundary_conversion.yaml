@@ -1,0 +1,63 @@
+id: eo_dto_boundary_conversion
+title: Convert decoded DTO data at the boundary before domain logic
+fixture: eo_dto_boundary_conversion
+task: 'Refactor order handling so decoded API input is represented by DTOs at the
+  boundary, then converted to a domain object before running business rules. The stronger
+  solution should keep payload details out of domain behavior and operate on the `Order`
+  domain type. A weaker solution that carries dictionaries or DTOs through business
+  logic is intentionally plausible but should be penalized by design checks.
+
+  '
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: class OrderDto
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class Order\(
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def to_domain\(
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def load_order\(
+    target: diff
+    reason: Generated deterministic design signal
+  forbidden_regex:
+  - pattern: 'def is_eligible_for_free_shipping\(order: dict'
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: 'def is_eligible_for_free_shipping\(order: OrderDto'
+    target: files
+    reason: Generated deterministic design signal
+  max_changed_files: 6
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: Keep DTO parsing (`decode_order`) at the API boundary. Domain behavior should
+  depend on rich objects with invariants, not on raw payload structures. The tests
+  should continue to verify free-shipping behavior while the design checks enforce
+  boundary discipline.
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - Verify free-shipping behavior still matches requirements across all fixtures.
+  - Verify domain code in the good solution converts DTOs before applying rules.
+  - Verify bad solution leaks payload or DTOs into domain behavior.
+sets:
+- generated

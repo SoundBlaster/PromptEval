@@ -1,16 +1,53 @@
 name: elegant_objects
 cases:
-  - path: compound_name_scope.yaml
-    sets: [tuning]
-  - path: static_helper_relapse.yaml
-    sets: [tuning]
-  - path: dto_boundary.yaml
-    sets: [tuning]
-  - path: constructor_work.yaml
-    sets: [tuning]
-  - path: scout_cleanup.yaml
-    sets: [tuning]
-  - path: subscription_loyalty_discount.yaml
-    sets: [validation]
-  - path: subscription_refund_scope.yaml
-    sets: [validation]
+- path: compound_name_scope.yaml
+  sets:
+  - tuning
+- path: static_helper_relapse.yaml
+  sets:
+  - tuning
+- path: dto_boundary.yaml
+  sets:
+  - tuning
+- path: constructor_work.yaml
+  sets:
+  - tuning
+- path: scout_cleanup.yaml
+  sets:
+  - tuning
+- path: subscription_loyalty_discount.yaml
+  sets:
+  - validation
+- path: subscription_refund_scope.yaml
+  sets:
+  - validation
+- path: eo_composition_decorator.yaml
+  sets:
+  - generated
+- path: eo_constructor_work_trap.yaml
+  sets:
+  - generated
+- path: eo_dto_boundary_conversion.yaml
+  sets:
+  - generated
+- path: eo_immutable_no_setters.yaml
+  sets:
+  - generated
+- path: eo_inline_discount_domain_object.yaml
+  sets:
+  - generated
+- path: eo_naming_scope_not_dogma.yaml
+  sets:
+  - generated
+- path: eo_no_helper_manager.yaml
+  sets:
+  - generated
+- path: eo_no_type_branching.yaml
+  sets:
+  - generated
+- path: eo_report_opportunities.yaml
+  sets:
+  - generated
+- path: eo_scout_cleanup_restraint.yaml
+  sets:
+  - generated

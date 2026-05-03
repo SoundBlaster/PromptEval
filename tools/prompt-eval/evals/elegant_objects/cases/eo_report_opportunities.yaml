@@ -1,0 +1,50 @@
+id: eo_report_opportunities
+title: Report larger EO refactor opportunities before architecture rewrite
+fixture: eo_report_opportunities
+task: 'Update render_monthly_report so it does not silently rewrite caller payload
+  structures. Detect problematic row shapes and report larger EO refactor opportunities
+  in the generated report output. Keep the change narrow by staying in reporting.py
+  and do not introduce cross module architecture rewrites.
+
+  '
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: render_monthly_report
+    target: diff
+    reason: Generated deterministic design signal
+  max_changed_files: 6
+  forbidden_regex: []
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: 'Good should add explicit opportunity reporting in output while preserving
+  input payload immutability. Bad should change multiple modules and keep payload
+  rewrite behavior.
+
+  '
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - behavior, no silent mutation, opportunity report present
+  - narrow edits limited to reporting code in good solution
+  - explicit acknowledgment of broader EO refactor opportunities
+  - tests and compileall pass for before and good, fail for bad
+  - task text clearly communicates narrower scope and opportunities
+sets:
+- generated

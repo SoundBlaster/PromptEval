@@ -1,0 +1,86 @@
+id: eo_composition_decorator
+title: Use decorators instead of flag-driven checkout behavior
+fixture: eo_composition_decorator
+task: 'The checkout implementation currently uses boolean flags and branching to choose
+  behavior. Refactor it to Elegant Objects composition with small decorator objects
+  for each feature (express fee, loyalty discount, regional tax) while preserving
+  behavior. Avoid inheritance trees for feature branching.
+
+  '
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: class BaseAmount
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class AmountDecorator
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class Checkout
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class ExpressFee
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class LoyaltyDiscount
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class RegionalTax
+    target: diff
+    reason: Generated deterministic design signal
+  forbidden_regex:
+  - pattern: if self.express
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: if self.region
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: if self.loyal_customer
+    target: files
+    reason: Generated deterministic design signal
+  max_changed_files: 10
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: 'Good solution is expected to preserve all totals shown in tests by composing
+  behavior objects. Bad solution intentionally demonstrates branching through flags
+  and subclass selection.
+
+  '
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - 'Calculates totals exactly as before and for all tested region and feature combinations.
+
+    '
+  - 'Keeps behavior localized, avoids touching unrelated modules, and limits API changes
+    to checkout logic.
+
+    '
+  - 'Uses delegation and composition/decorators instead of flag-driven or subclass
+    behavior branching.
+
+    '
+  - 'Demonstrates passing tests and successful compile for the fixture project.
+
+    '
+  - 'Uses clear class and method names showing intent for each behavior.
+
+    '
+sets:
+- generated

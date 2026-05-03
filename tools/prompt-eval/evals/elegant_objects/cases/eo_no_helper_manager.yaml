@@ -1,0 +1,64 @@
+id: eo_no_helper_manager
+fixture: eo_no_helper_manager
+title: Refactor invoice calculation into focused objects, no helpers/managers
+task: 'Replace broad orchestration classes (Manager/Helper) with focused domain objects.
+
+  Keep behavior: subtotal, discount, tax and total calculation for an invoice.
+
+  '
+notes: 'The before version mixes orchestration and rules in a manager.
+
+  The good solution should model discount and tax as focused value objects.
+
+  The bad solution should continue to own business logic in a Helper or Manager class.
+
+  '
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: class LineItem
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class DiscountPolicy
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class TaxPolicy
+    target: diff
+    reason: Generated deterministic design signal
+  forbidden_regex:
+  - pattern: Helper
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: Manager
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: Processor
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: Services
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: Utils
+    target: files
+    reason: Generated deterministic design signal
+  max_changed_files: 8
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - Invoice behavior is preserved and can be reasoned with small focused objects
+  - No Manager or Helper abstractions in the solution implementation
+  - Behavior is encapsulated in domain objects, not centralized utility classes
+sets:
+- generated

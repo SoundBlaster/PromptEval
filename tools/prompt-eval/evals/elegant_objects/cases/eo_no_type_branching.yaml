@@ -1,0 +1,60 @@
+id: eo_no_type_branching
+title: Avoid type-based branching in shipping domain logic
+fixture: eo_no_type_branching
+task: 'Refactor shipping total calculation to remove type-cast or isinstance-based
+  branching in domain logic. Use polymorphic shipping modes (protocols or subclass
+  overrides) so adding a new shipping mode does not require touching order logic.
+
+  '
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: class ShippingMode
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class Order
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def total
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def fee
+    target: diff
+    reason: Generated deterministic design signal
+  forbidden_regex:
+  - pattern: isinstance\(
+    target: files
+    reason: Generated deterministic design signal
+  max_changed_files: 8
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: 'The bad solution compiles and appears to work for known modes, but it is closed
+  for extension and relies on explicit type checks in the order aggregate.
+
+  '
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - Total shipping fee matches domain rules and all tests pass.
+  - Changes should be limited to shipping domain files and not add unnecessary layers.
+  - Use polymorphic dispatch and avoid instanceof ladders or reflection-style branching.
+  - Required commands run successfully and deterministically.
+  - case.yaml should clearly state expectations for design and behavior.
+sets:
+- generated
