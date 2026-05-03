@@ -41,6 +41,25 @@ judge:
     )
 
 
+def _write_nested_generated(root: Path, case_id: str) -> None:
+    out = root / "generated" / case_id
+    for name in ("before", "good", "bad"):
+        package = out / name / "src" / "sample"
+        package.mkdir(parents=True)
+        (package / "__init__.py").write_text("")
+        (package / "domain.py").write_text("class Domain:\n    pass\n")
+    (out / "case.yaml").write_text(
+        f"""id: {case_id}
+title: Nested Case
+fixture: {case_id}
+task: Add behavior.
+checks: {{}}
+rubric:
+  functional_correctness: 40
+"""
+    )
+
+
 def test_generate_case_uses_codex_and_copies_output(tmp_path, monkeypatch):
     calls = []
 
@@ -71,6 +90,35 @@ def test_generate_case_uses_codex_and_copies_output(tmp_path, monkeypatch):
     assert calls[0][3:] == ("gpt-5.3-codex-spark", "fast", "codex")
 
 
+def test_generate_case_detects_nested_python_fixture(tmp_path, monkeypatch):
+    def fake_run_codex(sandbox, task, prompt_text, model, model_mode, codex_bin):
+        _write_nested_generated(sandbox, "nested_python")
+        return AgentRun(ok=True)
+
+    monkeypatch.setattr(case_generator, "run_codex", fake_run_codex)
+
+    generated = case_generator.generate_case("Nested Python case", case_id="nested_python", output_root=tmp_path)
+    case_yaml = yaml.safe_load((generated.output_dir / "case.yaml").read_text())
+
+    assert case_yaml["checks"]["commands"] == [["python", "-m", "pytest", "-q"], ["python", "-m", "compileall", "-q", "."]]
+
+
+def test_generate_case_removes_temp_workspace_after_copy(tmp_path, monkeypatch):
+    seen = []
+
+    def fake_run_codex(sandbox, task, prompt_text, model, model_mode, codex_bin):
+        seen.append(sandbox)
+        _write_generated(sandbox, "cleanup_case")
+        return AgentRun(ok=True)
+
+    monkeypatch.setattr(case_generator, "run_codex", fake_run_codex)
+
+    case_generator.generate_case("Cleanup case", case_id="cleanup_case", output_root=tmp_path)
+
+    assert seen
+    assert not seen[0].exists()
+
+
 def test_generate_case_rejects_missing_required_layout(tmp_path, monkeypatch):
     def fake_run_codex(sandbox, task, prompt_text, model, model_mode, codex_bin):
         (sandbox / "generated" / "broken").mkdir(parents=True)
@@ -80,6 +128,20 @@ def test_generate_case_rejects_missing_required_layout(tmp_path, monkeypatch):
 
     with pytest.raises(ValueError, match="missing required paths"):
         case_generator.generate_case("Broken case", case_id="broken", output_root=tmp_path)
+
+
+def test_generate_case_rejects_invalid_regex(tmp_path, monkeypatch):
+    def fake_run_codex(sandbox, task, prompt_text, model, model_mode, codex_bin):
+        _write_generated(sandbox, "invalid_regex")
+        case_yaml = sandbox / "generated" / "invalid_regex" / "case.yaml"
+        text = case_yaml.read_text().replace('- "Helper"', '- "isinstance("')
+        case_yaml.write_text(text)
+        return AgentRun(ok=True)
+
+    monkeypatch.setattr(case_generator, "run_codex", fake_run_codex)
+
+    with pytest.raises(ValueError, match="invalid regex"):
+        case_generator.generate_case("Invalid regex case", case_id="invalid_regex", output_root=tmp_path)
 
 
 def test_generate_case_repairs_regex_yaml_escapes(tmp_path, monkeypatch):

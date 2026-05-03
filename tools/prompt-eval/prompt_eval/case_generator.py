@@ -121,7 +121,7 @@ def _normalize_regex_checks(items) -> list[dict]:
 
 
 def _python_fixture(output_dir: Path) -> bool:
-    return any((output_dir / name).glob("*.py") for name in ("before", "good", "bad"))
+    return any((output_dir / name).rglob("*.py") for name in ("before", "good", "bad"))
 
 
 def _normalize_commands(commands, output_dir: Path) -> list:
@@ -173,6 +173,15 @@ def _normalize_case_yaml(case_yaml: Path) -> None:
     case_yaml.write_text(yaml.safe_dump(raw, sort_keys=False))
 
 
+def _validate_regex_checks(case: Path) -> None:
+    loaded = load_case(case)
+    for check in loaded.checks.required_regex + loaded.checks.forbidden_regex:
+        try:
+            re.compile(check.pattern)
+        except re.error as exc:
+            raise ValueError(f"invalid regex {check.pattern!r} in {case}: {exc}") from exc
+
+
 def _validate_case_dir(workdir: Path, output_dir: Path, case_id: str) -> GeneratedCase:
     case_yaml = output_dir / "case.yaml"
     before_dir = output_dir / "before"
@@ -185,7 +194,7 @@ def _validate_case_dir(workdir: Path, output_dir: Path, case_id: str) -> Generat
     if raw.get("fixture") != case_id:
         raise ValueError(f"case.yaml fixture must be {case_id!r}, got {raw.get('fixture')!r}")
     _normalize_case_yaml(case_yaml)
-    load_case(case_yaml)
+    _validate_regex_checks(case_yaml)
     return GeneratedCase(case_id=case_id, workdir=workdir, output_dir=output_dir, case_yaml=case_yaml, before_dir=before_dir, good_dir=good_dir, bad_dir=bad_dir)
 
 
@@ -216,7 +225,9 @@ def generate_case(
             raise FileExistsError(f"output already exists: {destination}")
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(generated.output_dir, destination)
-        return _validate_case_dir(output_root, destination, selected_id)
+        copied = _validate_case_dir(output_root, destination, selected_id)
+        shutil.rmtree(temp, ignore_errors=True)
+        return copied
     except Exception:
         if output_root is not None:
             shutil.rmtree(temp, ignore_errors=True)
