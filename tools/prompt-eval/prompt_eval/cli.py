@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from collections import defaultdict
 from .config import suite_case_sets
+from .case_generator import DEFAULT_GENERATOR_MODEL, DEFAULT_GENERATOR_MODEL_MODE, generate_case
 from .runner import run_suite
 
 
@@ -63,6 +64,14 @@ def main() -> None:
     runp.add_argument("--judge-codex-bin", help="path or command name for the Codex CLI used by the LLM judge")
     cmp = sub.add_parser("compare", help="print prompt average scores for a completed run"); cmp.add_argument("--run", required=True)
     rep = sub.add_parser("report", help="print report.md for a completed run"); rep.add_argument("--run", required=True)
+    gen = sub.add_parser("generate-case", help="generate a draft eval fixture from a text task with Codex CLI")
+    gen.add_argument("description", nargs="?", help="text task description; omit when using --description-file")
+    gen.add_argument("--description-file", help="read the task description from a file")
+    gen.add_argument("--case-id", help="stable snake_case case id; defaults to a slug from the description")
+    gen.add_argument("--output-root", default="generated-cases", help="directory where <case-id>/ will be written")
+    gen.add_argument("--model", default=DEFAULT_GENERATOR_MODEL, help="Codex model for fixture generation")
+    gen.add_argument("--model-mode", default=DEFAULT_GENERATOR_MODEL_MODE, choices=["fast"], help="Codex model execution mode")
+    gen.add_argument("--codex-bin", help="path or command name for the Codex CLI binary")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     if args.cmd == "list":
@@ -92,6 +101,22 @@ def main() -> None:
         print(run_dir)
     elif args.cmd == "compare":
         compare_run(Path(args.run))
+    elif args.cmd == "generate-case":
+        if args.description_file:
+            description = Path(args.description_file).read_text()
+        elif args.description:
+            description = args.description
+        else:
+            raise SystemExit("generate-case requires DESCRIPTION or --description-file")
+        generated = generate_case(
+            description,
+            args.case_id,
+            root / args.output_root,
+            args.model,
+            args.model_mode,
+            args.codex_bin,
+        )
+        print(generated.output_dir)
     else:
         print_report(Path(args.run))
 

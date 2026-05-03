@@ -1,4 +1,6 @@
 from pathlib import Path
+import re
+import pytest
 from prompt_eval.config import load_suite, suite_case_sets
 
 def test_load_suite():
@@ -15,16 +17,35 @@ def test_elegant_objects_suite_includes_medium_fixture_without_task_leakage():
 
 def test_elegant_objects_suite_declares_tuning_and_validation_sets():
     root = Path(__file__).resolve().parents[1]
-    assert suite_case_sets(root, "elegant_objects") == ["tuning", "validation"]
+    assert suite_case_sets(root, "elegant_objects") == ["tuning", "eo_refactoring", "validation", "eo_feature_lens", "generated"]
     tuning = load_suite(root, "elegant_objects", ["tuning"])
     validation = load_suite(root, "elegant_objects", ["validation"])
+    generated = load_suite(root, "elegant_objects", ["generated"])
+    feature_lens = load_suite(root, "elegant_objects", ["eo_feature_lens"])
+    refactoring = load_suite(root, "elegant_objects", ["eo_refactoring"])
     assert len(tuning) == 5
     assert len(validation) == 2
+    assert len(generated) == 10
+    assert len(feature_lens) == 10
+    assert len(refactoring) == 7
     assert {case.fixture for case in validation} == {"python_subscription_billing"}
-    assert all(case.sets == ["tuning"] for case in tuning)
-    assert all(case.sets == ["validation"] for case in validation)
+    assert all("tuning" in case.sets for case in tuning)
+    assert all("validation" in case.sets for case in validation)
+    assert all("generated" in case.sets for case in generated)
+    assert all("eo_feature_lens" in case.sets for case in feature_lens)
+    assert all("eo_refactoring" in case.sets for case in refactoring)
     assert all(case.judge and case.judge.criteria for case in tuning + validation)
     assert all(case.judge and case.judge.categories == ["scope_control", "eo_adherence", "communication"] for case in tuning + validation)
+
+def test_elegant_objects_regex_checks_compile():
+    root = Path(__file__).resolve().parents[1]
+    for case in load_suite(root, "elegant_objects"):
+        regexes = case.checks.required_regex + case.checks.forbidden_regex
+        for check in regexes:
+            try:
+                re.compile(check.pattern)
+            except re.error as exc:
+                pytest.fail(f"{case.id}: invalid regex {check.pattern!r}: {exc}")
 
 def test_load_suite_accepts_yaml_syntax(tmp_path):
     suite_dir = tmp_path / "evals" / "custom"

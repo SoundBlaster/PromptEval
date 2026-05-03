@@ -1,6 +1,9 @@
 import json
 
+from pathlib import Path
+
 from prompt_eval.cli import compare_run
+from prompt_eval import cli
 
 
 def test_compare_run_prints_case_set_breakdown(tmp_path, capsys):
@@ -15,3 +18,75 @@ def test_compare_run_prints_case_set_breakdown(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "| Prompt | Cases | Avg score | Tuning | Validation |" in out
     assert "| eo.md | 2 | 80.0 | 90.0 | 70.0 |" in out
+
+
+def test_generate_case_cli_accepts_positional_description(tmp_path, monkeypatch, capsys):
+    calls = []
+
+    def fake_generate_case(description, case_id, output_root, model, model_mode, codex_bin):
+        calls.append((description, case_id, output_root, model, model_mode, codex_bin))
+
+        class Generated:
+            output_dir = tmp_path / "generated"
+
+        return Generated()
+
+    monkeypatch.chdir(Path(__file__).resolve().parents[1])
+    monkeypatch.setattr(cli, "generate_case", fake_generate_case)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "peval",
+            "generate-case",
+            "Build a case",
+            "--case-id",
+            "sample",
+            "--output-root",
+            str(tmp_path),
+            "--model",
+            "gpt-test",
+            "--model-mode",
+            "fast",
+            "--codex-bin",
+            "codex-test",
+        ],
+    )
+
+    cli.main()
+
+    assert calls == [("Build a case", "sample", tmp_path, "gpt-test", "fast", "codex-test")]
+    assert str(tmp_path / "generated") in capsys.readouterr().out
+
+
+def test_generate_case_cli_accepts_description_file(tmp_path, monkeypatch, capsys):
+    description = tmp_path / "description.txt"
+    description.write_text("Build from file")
+    calls = []
+
+    def fake_generate_case(description_text, case_id, output_root, model, model_mode, codex_bin):
+        calls.append((description_text, case_id, output_root, model, model_mode, codex_bin))
+
+        class Generated:
+            output_dir = tmp_path / "generated"
+
+        return Generated()
+
+    monkeypatch.chdir(Path(__file__).resolve().parents[1])
+    monkeypatch.setattr(cli, "generate_case", fake_generate_case)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "peval",
+            "generate-case",
+            "--description-file",
+            str(description),
+            "--case-id",
+            "sample",
+        ],
+    )
+
+    cli.main()
+
+    root = Path(__file__).resolve().parents[1]
+    assert calls == [("Build from file", "sample", root / "generated-cases", "gpt-5.3-codex-spark", "fast", None)]
+    assert str(tmp_path / "generated") in capsys.readouterr().out

@@ -24,6 +24,9 @@ It also includes `procedural_helper.md` as an explicit negative-control prompt f
 Suites can tag cases into sets. The included `elegant_objects` suite uses:
 - `tuning`: small known cases for fast prompt editing.
 - `validation`: held-out realistic cases for checking whether the prompt generalizes.
+- `generated`: generated EO cases promoted from draft fixtures.
+- `eo_feature_lens`: ordinary feature work where EO should only guide planning and local review.
+- `eo_refactoring`: explicit refactoring tasks where EO is the target transformation.
 
 Run only the prompt-authoring set while editing:
 ```bash
@@ -31,6 +34,17 @@ peval run --suite elegant_objects --case-set tuning --prompts prompts/elegant_ob
 ```
 
 Then run without `--case-set`, or explicitly run `--case-set validation`, before accepting a prompt change. `peval compare` and `report.md` show set-level averages so a prompt that only improves known cases is visible.
+
+The EO prompts are intentionally split by task mode:
+- `eo_planner.md`: use EO only as a planning lens for feature work in existing code.
+- `eo_refactor.md`: use EO as the target for explicit behavior-preserving refactoring.
+- `eo_greenfield.md`: use EO as the design foundation for from-scratch tasks.
+
+Avoid comparing these prompts only on the full mixed suite. Prefer mode-specific runs, for example:
+```bash
+peval run --suite elegant_objects --case-set eo_feature_lens --prompts prompts/elegant_objects/baseline.md prompts/elegant_objects/eo_planner.md --agent codex
+peval run --suite elegant_objects --case-set eo_refactoring --prompts prompts/elegant_objects/baseline.md prompts/elegant_objects/eo_refactor.md --agent codex
+```
 
 ## Codex integration (optional)
 ```bash
@@ -60,6 +74,16 @@ Create a case YAML under `evals/<suite>/cases/` and include it in `suite.yaml`.
 Each case points at a fixture, a task, deterministic checks, and a rubric.
 Represent shell commands as argv lists, for example `["python", "-m", "pytest", "-q"]`.
 Prefer adding new prompt-tuning cases under a `tuning` set and new held-out checks under `validation`.
+
+## Generate a draft eval case
+Use Codex Spark fast to turn a text task description into a reviewable draft fixture:
+```bash
+peval generate-case "Add an invoice tax rule task where the good solution keeps tax behavior in domain objects and the bad solution uses a TaxHelper"
+```
+
+The generator writes `generated-cases/<case-id>/` with `before/`, `good/`, `bad/`, and `case.yaml`.
+Review the draft before promoting it into `fixtures/<case-id>/` and `evals/<suite>/cases/<case-id>.yaml`.
+Pass `--case-id`, `--description-file`, `--model`, `--model-mode fast`, or `--codex-bin` when needed.
 
 ## Add a suite
 Create a new directory under `evals/<suite>/`, add a `suite.yaml`, and place matching prompts under `prompts/<suite>/`.

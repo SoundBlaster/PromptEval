@@ -1,0 +1,63 @@
+id: eo_scout_cleanup_restraint
+title: Scout cleanup should be restrained and deterministic
+fixture: eo_scout_cleanup_restraint
+task: 'Improve the `Scout` class so cleanup is a restrained local operation.
+
+  `cleanup` should normalize values by trimming whitespace, lowercasing,
+
+  removing blanks, and deduplicating while keeping order.
+
+  It must not mutate the original input list and the cleanup logic should stay
+
+  inside `Scout`.
+
+  '
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: def _normalize
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def _unique_preserving
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def cleanup
+    target: diff
+    reason: Generated deterministic design signal
+  forbidden_regex:
+  - pattern: class CleanupPipeline
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: sorted\(
+    target: files
+    reason: Generated deterministic design signal
+  max_changed_files: 6
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: The `good` and `bad` solutions are both expected to keep tests around scout
+  cleanup, but only one should satisfy restraint and behavior.
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - Cleanup returns normalized deduplicated labels while preserving first-seen order.
+  - Scout cleanup does not mutate caller-provided input list.
+  - Good solution keeps cleanup responsibility in Scout and uses tiny local refactor.
+  - Bad solution performs broad unrelated refactor and broad reorganization.
+sets:
+- generated

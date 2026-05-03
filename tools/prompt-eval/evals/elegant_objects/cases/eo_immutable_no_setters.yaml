@@ -1,0 +1,91 @@
+id: eo_immutable_no_setters
+title: Replace setters with immutable invoice updates
+fixture: eo_immutable_no_setters
+task: 'Refactor the invoice model so domain state is immutable. Replace setter-driven
+  updates with methods that return new objects when state changes, including discount
+  and line item additions.
+
+  '
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: class Invoice
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def with_line
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def with_discount
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: return Invoice
+    target: diff
+    reason: Generated deterministic design signal
+  forbidden_regex:
+  - pattern: def set_
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: self.lines =
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: self.discount =
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: self.append
+    target: files
+    reason: Generated deterministic design signal
+  max_changed_files: 12
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: 'Keep the API explicit and value-based. A correct implementation should never
+  expose mutable public lists or rely on in-place updates for value transformations.
+
+  '
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - 'The invoice should compute totals correctly with discount and tax.
+
+    Immutable methods must leave the original invoice unchanged and return
+
+    updated instances.
+
+    '
+  - 'Changes should stay focused on domain model immutability and not rewrite the
+
+    task with unrelated behavior.
+
+    '
+  - 'The preferred solution should avoid setter-style mutation and public state
+
+    mutation.
+
+    '
+  - 'Tests should confirm immutability and expected totals. compileall and
+
+    pytest must be green in before and good, and bad should fail immutability
+
+    checks.
+
+    '
+  - 'Keep a compact API and minimal comments explaining intent.
+
+    '
+sets:
+- generated

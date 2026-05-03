@@ -1,0 +1,56 @@
+id: eo_inline_discount_domain_object
+fixture: eo_inline_discount_domain_object
+title: Move inline discount math out of the API renderer
+task: 'Refactor invoice discount calculation so the API rendering function does not
+  perform inline arithmetic. Introduce focused domain objects to model discount rules
+  and invoice totals, and keep rendering code responsible only for output shape.
+
+  '
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: class Discount
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class Invoice
+    target: diff
+    reason: Generated deterministic design signal
+  forbidden_regex:
+  - pattern: def calculate_discount_amount
+    target: files
+    reason: Generated deterministic design signal
+  max_changed_files: 7
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: 'This fixture isolates API versus domain responsibilities. The bad solution
+  keeps discount math in rendering/procedural helpers, while the good solution introduces
+  dedicated discount and invoice domain objects with behavior-rich methods.
+
+  '
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - Ensure invoice subtotal, discount, and total are preserved and tested across paths.
+  - Keep API layer thin; domain handles discount application.
+  - Introduce and use behavior-rich domain objects for discount computation and invoice
+    totals.
+  - Include deterministic tests and required checks (pytest + compileall).
+  - Task statement, notes, and rubric should be explicit and actionable.
+sets:
+- generated

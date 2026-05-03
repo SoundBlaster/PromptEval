@@ -1,0 +1,75 @@
+id: eo_naming_scope_not_dogma
+title: Name by scope, not by speculation
+fixture: eo_naming_scope_not_dogma
+task: 'Refactor the invoicing code into a smaller scope so identifiers can be short
+  and natural.
+
+  The current implementation uses long, domain-heavy names from broad external context.
+
+  Create a small invoice object and focused methods where names like `line`, `subtotal`,
+
+  `discounted`, `taxed`, and `total` are natural.
+
+  Do not perform only mechanical boundary renaming.'
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: class Invoice
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: class Totals
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def subtotal
+    target: diff
+    reason: Generated deterministic design signal
+  - pattern: def total
+    target: diff
+    reason: Generated deterministic design signal
+  forbidden_regex:
+  - pattern: calculate_invoice_total_with_discounts_and_taxes_for_customer
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: customer_discount_percentage
+    target: files
+    reason: Generated deterministic design signal
+  - pattern: sales_tax_percentage
+    target: files
+    reason: Generated deterministic design signal
+  max_changed_files: 10
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: 'A strong answer should avoid long compound names by introducing a narrow-scoped
+  invoice model.
+
+  A weak answer may keep the same giant flow while only renaming method or parameter
+  names.
+
+  '
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - Invoice totals must continue to compute exact float results for discount and tax.
+  - Short names should be justified by reduced object scope rather than boundary-wide
+    renaming.
+  - Demonstrate extraction of focused helpers/objects and keep behavior intact.
+  - Keep tests and compile checks passing in all generated fixture folders.
+  - Show the naming rationale in code structure and avoid ad-hoc global renaming.
+sets:
+- generated
