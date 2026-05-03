@@ -20,6 +20,18 @@ Good fixture should score higher than bad fixture. Reports are written to `runs/
 The included `elegant_objects` suite mixes a compact shop fixture with a larger subscription billing fixture that has nearby refund code as a scope-control distractor.
 It also includes `procedural_helper.md` as an explicit negative-control prompt for Codex runs.
 
+## Avoid prompt overfitting
+Suites can tag cases into sets. The included `elegant_objects` suite uses:
+- `tuning`: small known cases for fast prompt editing.
+- `validation`: held-out realistic cases for checking whether the prompt generalizes.
+
+Run only the prompt-authoring set while editing:
+```bash
+peval run --suite elegant_objects --case-set tuning --prompts prompts/elegant_objects/eo_lite.md --agent fixture-good
+```
+
+Then run without `--case-set`, or explicitly run `--case-set validation`, before accepting a prompt change. `peval compare` and `report.md` show set-level averages so a prompt that only improves known cases is visible.
+
 ## Codex integration (optional)
 ```bash
 peval run --suite elegant_objects --prompts prompts/elegant_objects/eo_lite.md --agent codex
@@ -38,6 +50,7 @@ Prompts can target any coding policy, architecture style, security rule, migrati
 Create a case YAML under `evals/<suite>/cases/` and include it in `suite.yaml`.
 Each case points at a fixture, a task, deterministic checks, and a rubric.
 Represent shell commands as argv lists, for example `["python", "-m", "pytest", "-q"]`.
+Prefer adding new prompt-tuning cases under a `tuning` set and new held-out checks under `validation`.
 
 ## Add a suite
 Create a new directory under `evals/<suite>/`, add a `suite.yaml`, and place matching prompts under `prompts/<suite>/`.

@@ -1,9 +1,16 @@
 name: elegant_objects
 cases:
-  - compound_name_scope.yaml
-  - static_helper_relapse.yaml
-  - dto_boundary.yaml
-  - constructor_work.yaml
-  - scout_cleanup.yaml
-  - subscription_loyalty_discount.yaml
-  - subscription_refund_scope.yaml
+  - path: compound_name_scope.yaml
+    sets: [tuning]
+  - path: static_helper_relapse.yaml
+    sets: [tuning]
+  - path: dto_boundary.yaml
+    sets: [tuning]
+  - path: constructor_work.yaml
+    sets: [tuning]
+  - path: scout_cleanup.yaml
+    sets: [tuning]
+  - path: subscription_loyalty_discount.yaml
+    sets: [validation]
+  - path: subscription_refund_scope.yaml
+    sets: [validation]

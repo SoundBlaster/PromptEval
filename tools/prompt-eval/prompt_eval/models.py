@@ -34,6 +34,7 @@ class EvalCase:
     checks: CaseChecks
     rubric: dict[str, int]
     notes: str = ""
+    sets: list[str] = field(default_factory=list)
 
 @dataclass
 class CheckResult:
@@ -57,6 +58,7 @@ class CaseRunResult:
     checks: list[CheckResult]
     diff_path: str
     transcript_path: str
+    case_sets: list[str] = field(default_factory=list)
     stdout: str = ""
     stderr: str = ""
 

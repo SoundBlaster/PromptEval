@@ -20,11 +20,12 @@ def run_suite(
     model: str | None = None,
     model_mode: str | None = None,
     codex_bin: str | None = None,
+    case_sets: list[str] | None = None,
 ) -> Path:
     run_id = f"{datetime.datetime.utcnow().strftime('%Y%m%d-%H%M%S-%f')}-{uuid.uuid4().hex[:8]}"
     run_dir = root / "runs" / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
-    cases = load_suite(root, suite)
+    cases = load_suite(root, suite, case_sets)
     results = []
     for p in prompts:
         ptxt = p.read_text()
@@ -49,7 +50,7 @@ def run_suite(
                 (case_dir / "trace.jsonl").write_text("\n".join(json.dumps(x) for x in (ar.trace or [])))
                 res = CaseRunResult(suite=suite, prompt=str(p), case_id=case.id, score=score, checks=checks,
                                     diff_path=str(case_dir / "diff.patch"), transcript_path=str(case_dir / "trace.jsonl"),
-                                    stdout=ar.stdout, stderr=ar.stderr)
+                                    case_sets=case.sets, stdout=ar.stdout, stderr=ar.stderr)
                 (case_dir / "result.json").write_text(json.dumps(res.to_json(), indent=2))
                 results.append(res)
             finally:
