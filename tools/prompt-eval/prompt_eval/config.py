@@ -1,10 +1,10 @@
 from __future__ import annotations
 from pathlib import Path
-import json
+import yaml
 from .models import EvalCase, CaseChecks, RegexCheck
 
 def _load(path: Path):
-    return json.loads(path.read_text())
+    return yaml.safe_load(path.read_text()) or {}
 
 def load_case(path: Path) -> EvalCase:
     raw = _load(path)

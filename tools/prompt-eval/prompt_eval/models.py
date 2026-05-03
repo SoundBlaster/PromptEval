@@ -3,7 +3,13 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any
 
-CATEGORY_KEYS = ["functional_correctness", "scope_control", "eo_adherence", "verification", "communication"]
+DEFAULT_RUBRIC = {
+    "functional_correctness": 40,
+    "scope_control": 20,
+    "design_quality": 25,
+    "verification": 10,
+    "communication": 5,
+}
 
 @dataclass
 class RegexCheck:
@@ -13,7 +19,7 @@ class RegexCheck:
 
 @dataclass
 class CaseChecks:
-    commands: list[str] = field(default_factory=list)
+    commands: list[str | list[str]] = field(default_factory=list)
     required_files: list[str] = field(default_factory=list)
     forbidden_regex: list[RegexCheck] = field(default_factory=list)
     required_regex: list[RegexCheck] = field(default_factory=list)

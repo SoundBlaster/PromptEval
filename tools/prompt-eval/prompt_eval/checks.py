@@ -1,7 +1,10 @@
 from __future__ import annotations
 from pathlib import Path
-import re, subprocess
+import re, shlex, subprocess
 from .models import EvalCase, CheckResult
+
+
+SKIP_FILE_PARTS = {".git", ".venv", "venv", "env", "site-packages", "__pycache__"}
 
 
 def git_diff(sandbox: Path) -> str:
@@ -12,14 +15,39 @@ def changed_files_count(diff: str) -> int:
     return len([l for l in diff.splitlines() if l.startswith("diff --git")])
 
 
+def command_argv(cmd: str | list[str]) -> list[str]:
+    return cmd if isinstance(cmd, list) else shlex.split(cmd)
+
+
+def command_name(cmd: str | list[str]) -> str:
+    return shlex.join(command_argv(cmd))
+
+
+def python_files_blob(sandbox: Path) -> str:
+    proc = subprocess.run(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "--", "*.py"],
+        cwd=sandbox,
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    chunks = []
+    for rel in proc.stdout.splitlines():
+        path = sandbox / rel
+        if any(part in SKIP_FILE_PARTS for part in path.relative_to(sandbox).parts):
+            continue
+        chunks.append(path.read_text(errors="ignore"))
+    return "\n".join(chunks)
+
+
 def run_checks(case: EvalCase, sandbox: Path, diff: str) -> list[CheckResult]:
     out = []
     for cmd in case.checks.commands:
-        p = subprocess.run(cmd, shell=True, cwd=sandbox, text=True, capture_output=True)
-        out.append(CheckResult(p.returncode == 0, f"command:{cmd}", (p.stdout + p.stderr)[-400:]))
+        p = subprocess.run(command_argv(cmd), cwd=sandbox, text=True, capture_output=True)
+        out.append(CheckResult(p.returncode == 0, f"command:{command_name(cmd)}", (p.stdout + p.stderr)[-400:]))
     for req in case.checks.required_files:
         out.append(CheckResult((sandbox / req).exists(), f"required_file:{req}"))
-    files_blob = "\n".join([p.read_text(errors="ignore") for p in sandbox.rglob("*.py")])
+    files_blob = python_files_blob(sandbox)
     for rr in case.checks.required_regex:
         hay = diff if rr.target == "diff" else files_blob
         ok = bool(re.search(rr.pattern, hay, re.MULTILINE))

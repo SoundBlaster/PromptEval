@@ -1,10 +1,7 @@
-{
-  "name": "elegant_objects",
-  "cases": [
-    "compound_name_scope.yaml",
-    "static_helper_relapse.yaml",
-    "dto_boundary.yaml",
-    "constructor_work.yaml",
-    "scout_cleanup.yaml"
-  ]
-}
+name: elegant_objects
+cases:
+  - compound_name_scope.yaml
+  - static_helper_relapse.yaml
+  - dto_boundary.yaml
+  - constructor_work.yaml
+  - scout_cleanup.yaml
