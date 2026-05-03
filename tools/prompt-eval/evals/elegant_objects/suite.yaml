@@ -3,51 +3,68 @@ cases:
 - path: compound_name_scope.yaml
   sets:
   - tuning
+  - eo_refactoring
 - path: static_helper_relapse.yaml
   sets:
   - tuning
+  - eo_refactoring
 - path: dto_boundary.yaml
   sets:
   - tuning
+  - eo_refactoring
 - path: constructor_work.yaml
   sets:
   - tuning
+  - eo_refactoring
 - path: scout_cleanup.yaml
   sets:
   - tuning
+  - eo_refactoring
 - path: subscription_loyalty_discount.yaml
   sets:
   - validation
+  - eo_feature_lens
 - path: subscription_refund_scope.yaml
   sets:
   - validation
+  - eo_feature_lens
 - path: eo_composition_decorator.yaml
   sets:
   - generated
+  - eo_refactoring
 - path: eo_constructor_work_trap.yaml
   sets:
   - generated
+  - eo_feature_lens
 - path: eo_dto_boundary_conversion.yaml
   sets:
   - generated
+  - eo_feature_lens
 - path: eo_immutable_no_setters.yaml
   sets:
   - generated
+  - eo_feature_lens
 - path: eo_inline_discount_domain_object.yaml
   sets:
   - generated
+  - eo_refactoring
 - path: eo_naming_scope_not_dogma.yaml
   sets:
   - generated
+  - eo_feature_lens
 - path: eo_no_helper_manager.yaml
   sets:
   - generated
+  - eo_feature_lens
 - path: eo_no_type_branching.yaml
   sets:
   - generated
+  - eo_feature_lens
 - path: eo_report_opportunities.yaml
   sets:
   - generated
+  - eo_feature_lens
 - path: eo_scout_cleanup_restraint.yaml
   sets:
   - generated
+  - eo_feature_lens
