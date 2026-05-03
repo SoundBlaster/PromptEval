@@ -17,6 +17,8 @@ peval run --suite elegant_objects --prompts prompts/elegant_objects/eo_lite.md -
 peval run --suite elegant_objects --prompts prompts/elegant_objects/eo_lite.md --agent fixture-bad
 ```
 Good fixture should score higher than bad fixture. Reports are written to `runs/<id>/report.md`.
+The included `elegant_objects` suite mixes a compact shop fixture with a larger subscription billing fixture that has nearby refund code as a scope-control distractor.
+It also includes `procedural_helper.md` as an explicit negative-control prompt for Codex runs.
 
 ## Codex integration (optional)
 ```bash
@@ -57,3 +59,4 @@ Each run includes:
 - Add stronger rubric-to-check mapping per case.
 - Extend failure taxonomy tagging.
 - Add richer trace parsing for codex JSON events.
+- Add generated train/validation suites for closed-loop prompt improvement.

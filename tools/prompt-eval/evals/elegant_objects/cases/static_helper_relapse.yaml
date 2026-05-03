@@ -1,7 +1,7 @@
 id: static_helper_relapse
-title: static_helper_relapse
+title: Receipt formatting ownership
 fixture: python_eo_shop
-task: Implement static_helper_relapse behavior in EO style while preserving tests.
+task: Clean up receipt rendering so total formatting is owned by the pricing concept, while keeping the current tests and API behavior intact.
 checks:
   commands:
     - ["python", "-m", "pytest", "-q"]
@@ -13,9 +13,9 @@ checks:
       target: diff
       reason: Avoid static helper relapse
   required_regex:
-    - pattern: "class .*Receipt|class .*Price|class .*Order"
+    - pattern: "def total\\(|\\.formatted\\("
       target: files
-      reason: Expect object-focused behavior
+      reason: Expect the domain object to expose behavior used by receipt rendering
   max_changed_files: 6
 rubric:
   functional_correctness: 40
@@ -23,4 +23,4 @@ rubric:
   eo_adherence: 25
   verification: 10
   communication: 5
-notes: EO-focused check for static_helper_relapse.
+notes: Product-style request with EO-oriented checks hidden in the rubric.

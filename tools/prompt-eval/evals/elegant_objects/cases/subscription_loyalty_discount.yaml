@@ -1,0 +1,29 @@
+id: subscription_loyalty_discount
+title: Subscription loyalty discount
+fixture: python_subscription_billing
+task: Add an optional loyalty discount percentage to subscription invoice rendering. The invoice should show the discount line only when a discount is applied, keep the existing no-discount output compatible, and preserve refund behavior.
+checks:
+  commands:
+    - ["python", "-m", "pytest", "-q"]
+  forbidden_regex:
+    - pattern: "Utils|Helper|TODO"
+      target: diff
+      reason: Avoid dumping billing behavior into helper objects or TODO comments
+    - pattern: "@staticmethod"
+      target: diff
+      reason: Avoid static procedural calculation hooks
+  required_regex:
+    - pattern: "class .*Discount|def discount_amount\\(|def total\\("
+      target: files
+      reason: Expect discount behavior to be represented by domain behavior
+    - pattern: "loyalty_percent"
+      target: files
+      reason: Expect the public invoice API to expose the requested option
+  max_changed_files: 7
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: Medium-size fixture with realistic billing flow and distractor refund code.

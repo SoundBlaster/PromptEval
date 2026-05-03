@@ -1,7 +1,7 @@
 id: compound_name_scope
-title: compound_name_scope
+title: Receipt total formatting
 fixture: python_eo_shop
-task: Implement compound_name_scope behavior in EO style while preserving tests.
+task: Route receipt totals through the existing price representation so receipt rendering keeps one formatting path. Preserve the public API and existing behavior.
 checks:
   commands:
     - ["python", "-m", "pytest", "-q"]
@@ -13,9 +13,9 @@ checks:
       target: diff
       reason: Avoid static helper relapse
   required_regex:
-    - pattern: "class .*Receipt|class .*Price|class .*Order"
+    - pattern: "def total\\(|\\.formatted\\("
       target: files
-      reason: Expect object-focused behavior
+      reason: Expect receipt rendering to delegate price formatting instead of formatting raw cents inline
   max_changed_files: 6
 rubric:
   functional_correctness: 40
@@ -23,4 +23,4 @@ rubric:
   eo_adherence: 25
   verification: 10
   communication: 5
-notes: EO-focused check for compound_name_scope.
+notes: Product-style request with EO-oriented checks hidden in the rubric.

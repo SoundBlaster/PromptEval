@@ -5,3 +5,5 @@ cases:
   - dto_boundary.yaml
   - constructor_work.yaml
   - scout_cleanup.yaml
+  - subscription_loyalty_discount.yaml
+  - subscription_refund_scope.yaml
