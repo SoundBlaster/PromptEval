@@ -40,7 +40,7 @@ def _json_payload(text: str) -> dict:
 
 def _binary_eval_payload(case: EvalCase, payload: dict) -> list[JudgeBinaryEvalResult]:
     expected = {item.id: item for item in (case.judge.binary_evals if case.judge else [])}
-    results = []
+    returned = {}
     for item in payload.get("binary_evals", []) or []:
         if not isinstance(item, dict):
             continue
@@ -48,16 +48,31 @@ def _binary_eval_payload(case: EvalCase, payload: dict) -> list[JudgeBinaryEvalR
         if eval_id not in expected:
             continue
         spec = expected[eval_id]
-        results.append(
+        passed_raw = item.get("passed")
+        passed = passed_raw is True
+        evidence = str(item.get("evidence") or "")
+        if not isinstance(passed_raw, bool):
+            evidence = f"Invalid `passed` value for judge binary eval: expected JSON boolean, got {passed_raw!r}."
+        returned[eval_id] = JudgeBinaryEvalResult(
+            id=eval_id,
+            passed=passed,
+            category=str(item.get("category") or spec.category or ""),
+            question=str(item.get("question") or spec.question),
+            evidence=evidence,
+        )
+    return [
+        returned.get(
+            eval_id,
             JudgeBinaryEvalResult(
                 id=eval_id,
-                passed=bool(item.get("passed")),
-                category=str(item.get("category") or spec.category or ""),
-                question=str(item.get("question") or spec.question),
-                evidence=str(item.get("evidence") or ""),
-            )
+                passed=False,
+                category=str(spec.category or ""),
+                question=str(spec.question),
+                evidence="Judge response omitted this configured binary eval.",
+            ),
         )
-    return results
+        for eval_id, spec in expected.items()
+    ]
 
 
 def _parse(stdout: str, case: EvalCase, allowed_categories: list[str] | None = None) -> JudgeResult:

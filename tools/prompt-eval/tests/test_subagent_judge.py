@@ -151,6 +151,61 @@ def test_subagent_judge_parse_binary_evals():
     assert result.binary_evals[0].evidence == "Pricing behavior still sits in helper-style wrappers."
 
 
+def test_subagent_judge_parse_rejects_stringified_binary_eval_boolean():
+    case = _case()
+    case.judge = CaseJudge(
+        categories=["eo_adherence"],
+        binary_evals=[
+            JudgeBinaryEval(
+                id="ownership",
+                question="Does behavior stay in domain objects?",
+                category="eo_adherence",
+            )
+        ],
+    )
+    result = _parse(
+        json.dumps(
+            {
+                "categories": {"eo_adherence": 20},
+                "binary_evals": [{"id": "ownership", "passed": "false", "evidence": "string value"}],
+                "failure_tags": [],
+                "summary": "ok",
+            }
+        ),
+        case,
+    )
+
+    assert not result.binary_evals[0].passed
+    assert "expected JSON boolean" in result.binary_evals[0].evidence
+
+
+def test_subagent_judge_parse_marks_omitted_binary_evals_failed():
+    case = _case()
+    case.judge = CaseJudge(
+        categories=["eo_adherence"],
+        binary_evals=[
+            JudgeBinaryEval(id="ownership", question="Does behavior stay in domain objects?", category="eo_adherence"),
+            JudgeBinaryEval(id="scope", question="Does scope stay narrow?", category="scope_control"),
+        ],
+    )
+    result = _parse(
+        json.dumps(
+            {
+                "categories": {"eo_adherence": 20},
+                "binary_evals": [{"id": "ownership", "passed": True, "evidence": "owned"}],
+                "failure_tags": [],
+                "summary": "ok",
+            }
+        ),
+        case,
+    )
+
+    assert [item.id for item in result.binary_evals] == ["ownership", "scope"]
+    assert result.binary_evals[0].passed
+    assert not result.binary_evals[1].passed
+    assert result.binary_evals[1].evidence == "Judge response omitted this configured binary eval."
+
+
 def test_subagent_prompt_includes_binary_eval_contract():
     case = _case()
     case.judge = CaseJudge(
