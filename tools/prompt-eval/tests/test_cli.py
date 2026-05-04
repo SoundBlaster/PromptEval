@@ -90,3 +90,32 @@ def test_generate_case_cli_accepts_description_file(tmp_path, monkeypatch, capsy
     root = Path(__file__).resolve().parents[1]
     assert calls == [("Build from file", "sample", root / "generated-cases", "gpt-5.3-codex-spark", "fast", None)]
     assert str(tmp_path / "generated") in capsys.readouterr().out
+
+
+def test_record_cli_records_completed_run(tmp_path, monkeypatch, capsys):
+    calls = []
+    run = tmp_path / "runs" / "sample"
+
+    def fake_record_run(root, run_dir, title):
+        calls.append((root, run_dir, title))
+        return tmp_path / "records/elegant_objects/sample.md"
+
+    monkeypatch.chdir(Path(__file__).resolve().parents[1])
+    monkeypatch.setattr(cli, "record_run", fake_record_run)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "peval",
+            "record",
+            "--run",
+            str(run),
+            "--title",
+            "Sample run",
+        ],
+    )
+
+    cli.main()
+
+    root = Path(__file__).resolve().parents[1]
+    assert calls == [(root, run, "Sample run")]
+    assert str(tmp_path / "records/elegant_objects/sample.md") in capsys.readouterr().out

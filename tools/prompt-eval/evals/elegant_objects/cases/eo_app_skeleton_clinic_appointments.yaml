@@ -1,0 +1,57 @@
+id: eo_app_skeleton_clinic_appointments
+title: Design a clinic appointments domain skeleton
+fixture: eo_app_skeleton_clinic_appointments
+task: |
+  Build a small domain skeleton for clinic appointments. It must schedule visit
+  requests against doctor specialties and day capacity, enforce blocked-patient
+  and referral rules, track remaining slot capacity across a request batch, and
+  check patients in with late fees. Do not implement persistence, UI, billing, or
+  messaging. The task is intentionally product-level: choose the internal design
+  yourself.
+checks:
+  commands:
+  - ["python", "-m", "pytest", "-q"]
+  - ["python", "-m", "compileall", "-q", "."]
+  required_regex:
+  - pattern: def\s+schedule_visits\s*\(
+    target: files
+    paths: ["clinic/app.py", "clinic/__init__.py"]
+    reason: Preserve the public scheduling API required by tests
+  - pattern: def\s+check_in\s*\(
+    target: files
+    paths: ["clinic/app.py", "clinic/__init__.py"]
+    reason: Preserve the public check-in API required by tests
+  forbidden_regex:
+  - pattern: \b\w*Service\b
+    target: files
+    reason: Avoid service-centered orchestration in the domain skeleton
+  - pattern: \b\w*Manager\b
+    target: files
+    reason: Avoid manager-centered appointment design
+  - pattern: \b\w*Helper\b
+    target: files
+    reason: Avoid helper-centered scheduling or check-in logic
+  max_changed_files: 8
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: |
+  Product-style app skeleton task. Tests prescribe behavior and public API, not
+  the object model. A strong EO solution should discover behavior-rich objects
+  for patients, doctors, slots, visit requests, appointment batches, and check-ins.
+judge:
+  categories: [scope_control, eo_adherence, communication]
+  criteria:
+  - Score EO application design, not generic clean code. Passing tests is necessary
+    but not enough.
+  - Reward behavior-rich collaborating objects for eligibility, doctor matching,
+    batch capacity, denials, appointment windows, and late fee behavior.
+  - Penalize service/manager/helper-centered orchestration, passive data bags,
+    primitive obsession, getter/setter domain modeling, and procedural scripts.
+  - Reward a compact public API with internal object collaboration and no persistence
+    or appointment-system overbuild.
+  - Do not require specific class names; judge ownership and collaboration.
+sets: [generated, eo_greenfield, eo_app_skeleton, eo_app_skeleton_holdout]

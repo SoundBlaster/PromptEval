@@ -5,6 +5,7 @@ from pathlib import Path
 from collections import defaultdict
 from .config import suite_case_sets
 from .case_generator import DEFAULT_GENERATOR_MODEL, DEFAULT_GENERATOR_MODEL_MODE, generate_case
+from .records import record_run
 from .runner import run_suite
 
 
@@ -62,8 +63,13 @@ def main() -> None:
     runp.add_argument("--judge-model", help="model name for the LLM judge")
     runp.add_argument("--judge-model-mode", choices=["fast"], help="model execution mode for the LLM judge")
     runp.add_argument("--judge-codex-bin", help="path or command name for the Codex CLI used by the LLM judge")
+    runp.add_argument("--record", action="store_true", help="write a compact versioned record for this run")
+    runp.add_argument("--record-title", help="human-readable title for --record")
     cmp = sub.add_parser("compare", help="print prompt average scores for a completed run"); cmp.add_argument("--run", required=True)
     rep = sub.add_parser("report", help="print report.md for a completed run"); rep.add_argument("--run", required=True)
+    rec = sub.add_parser("record", help="write a compact versioned record for a completed run")
+    rec.add_argument("--run", required=True)
+    rec.add_argument("--title")
     gen = sub.add_parser("generate-case", help="generate a draft eval fixture from a text task with Codex CLI")
     gen.add_argument("description", nargs="?", help="text task description; omit when using --description-file")
     gen.add_argument("--description-file", help="read the task description from a file")
@@ -98,9 +104,13 @@ def main() -> None:
             args.judge_model_mode,
             args.judge_codex_bin,
         )
+        if args.record:
+            print(record_run(root, run_dir, args.record_title))
         print(run_dir)
     elif args.cmd == "compare":
         compare_run(Path(args.run))
+    elif args.cmd == "record":
+        print(record_run(root, Path(args.run), args.title))
     elif args.cmd == "generate-case":
         if args.description_file:
             description = Path(args.description_file).read_text()

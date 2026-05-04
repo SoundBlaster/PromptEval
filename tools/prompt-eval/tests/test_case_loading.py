@@ -17,7 +17,17 @@ def test_elegant_objects_suite_includes_medium_fixture_without_task_leakage():
 
 def test_elegant_objects_suite_declares_tuning_and_validation_sets():
     root = Path(__file__).resolve().parents[1]
-    assert suite_case_sets(root, "elegant_objects") == ["tuning", "eo_refactoring", "validation", "eo_feature_lens", "generated", "eo_greenfield", "eo_app_skeleton"]
+    assert suite_case_sets(root, "elegant_objects") == [
+        "tuning",
+        "eo_refactoring",
+        "validation",
+        "eo_feature_lens",
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning",
+        "eo_app_skeleton_holdout",
+    ]
     tuning = load_suite(root, "elegant_objects", ["tuning"])
     validation = load_suite(root, "elegant_objects", ["validation"])
     generated = load_suite(root, "elegant_objects", ["generated"])
@@ -25,13 +35,17 @@ def test_elegant_objects_suite_declares_tuning_and_validation_sets():
     refactoring = load_suite(root, "elegant_objects", ["eo_refactoring"])
     greenfield = load_suite(root, "elegant_objects", ["eo_greenfield"])
     app_skeleton = load_suite(root, "elegant_objects", ["eo_app_skeleton"])
+    app_skeleton_tuning = load_suite(root, "elegant_objects", ["eo_app_skeleton_tuning"])
+    app_skeleton_holdout = load_suite(root, "elegant_objects", ["eo_app_skeleton_holdout"])
     assert len(tuning) == 5
     assert len(validation) == 2
-    assert len(generated) == 13
+    assert len(generated) == 19
     assert len(feature_lens) == 10
     assert len(refactoring) == 7
-    assert len(greenfield) == 3
-    assert len(app_skeleton) == 2
+    assert len(greenfield) == 9
+    assert len(app_skeleton) == 8
+    assert len(app_skeleton_tuning) == 5
+    assert len(app_skeleton_holdout) == 3
     assert {case.fixture for case in validation} == {"python_subscription_billing"}
     assert all("tuning" in case.sets for case in tuning)
     assert all("validation" in case.sets for case in validation)
@@ -40,6 +54,9 @@ def test_elegant_objects_suite_declares_tuning_and_validation_sets():
     assert all("eo_refactoring" in case.sets for case in refactoring)
     assert all("eo_greenfield" in case.sets for case in greenfield)
     assert all("eo_app_skeleton" in case.sets for case in app_skeleton)
+    assert all("eo_app_skeleton_tuning" in case.sets for case in app_skeleton_tuning)
+    assert all("eo_app_skeleton_holdout" in case.sets for case in app_skeleton_holdout)
+    assert not {case.id for case in app_skeleton_tuning}.intersection({case.id for case in app_skeleton_holdout})
     assert all(case.judge and case.judge.criteria for case in tuning + validation)
     assert all(case.judge and case.judge.categories == ["scope_control", "eo_adherence", "communication"] for case in tuning + validation)
 

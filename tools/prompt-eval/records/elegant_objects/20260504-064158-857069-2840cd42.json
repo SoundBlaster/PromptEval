@@ -1,0 +1,169 @@
+{
+  "analysis": [
+    {
+      "prompt": "eo_refactor.md",
+      "strengths": [
+        "Strong cases (>=90): eo_app_skeleton_mp3_player, eo_app_skeleton_warehouse_picking, eo_app_skeleton_meal_delivery, eo_app_skeleton_hotel_booking, eo_app_skeleton_ticketing_refunds."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): eo_app_skeleton_library (82), eo_app_skeleton_clinic_appointments (80).",
+        "Failure tags: cart_quantity_aggregation_missing x1, delegates_to_unknown_orchestrators x1, orchestrator_style_flow x1, roomtype_reserve_internal_path_unused x1, commands_failed x1."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "eo_app_skeleton_bookstore",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "cart_quantity_aggregation_missing"
+      ],
+      "judge": "The patch implements the required quote/order APIs with requested business rules, but it weakly applies EO principles in parts and mishandles duplicate cart lines when reserving inventory.",
+      "prompt": "eo_refactor.md",
+      "score": 87
+    },
+    {
+      "case_id": "eo_app_skeleton_library",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "delegates_to_unknown_orchestrators"
+      ],
+      "judge": "Patch correctly wires public API calls but applies only thin delegation in the application layer, with no visible domain-object collaboration guarantees and some procedural normalization helpers that weaken EO purity.",
+      "prompt": "eo_refactor.md",
+      "score": 82
+    },
+    {
+      "case_id": "eo_app_skeleton_mp3_player",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "The submission preserves required APIs and behavior, models domain concepts with collaborating objects, and mostly avoids service/manager/helper patterns, with only minor residue from dict-backed DTO-style context handling.",
+      "prompt": "eo_refactor.md",
+      "score": 93
+    },
+    {
+      "case_id": "eo_app_skeleton_warehouse_picking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "The patch adds a clean FEFO domain flow with batch allocation, demand aggregation, shortage reporting, remaining-stock snapshots, and acceptance-gated commit, with only minor EO polish opportunities (mostly non-domain-facing mapping handling).",
+      "prompt": "eo_refactor.md",
+      "score": 96
+    },
+    {
+      "case_id": "eo_app_skeleton_meal_delivery",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "orchestrator_style_flow"
+      ],
+      "judge": "The patch satisfies the requested domain behavior and API constraints with a compact, single-file model, but the public functions remain the main coordinator of cross-domain decisions instead of deeper behavior delegation.",
+      "prompt": "eo_refactor.md",
+      "score": 94
+    },
+    {
+      "case_id": "eo_app_skeleton_hotel_booking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "roomtype_reserve_internal_path_unused"
+      ],
+      "judge": "The patch meets the domain requirements with behavior-rich objects and payment-gated allocation, but has duplicated orchestration paths and minor design rough edges that reduce its Elegant Objects quality.",
+      "prompt": "eo_refactor.md",
+      "score": 91
+    },
+    {
+      "case_id": "eo_app_skeleton_clinic_appointments",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "capacity_matching_failure"
+      ],
+      "judge": "The patch stays scoped and preserves the required public API while introducing domain objects, but scheduling behavior is semantically off in batch doctor matching/capacity use, reducing EO quality.",
+      "prompt": "eo_refactor.md",
+      "score": 80
+    },
+    {
+      "case_id": "eo_app_skeleton_ticketing_refunds",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "full_refund_requires_exact_ticket_set",
+        "unused_price_policy"
+      ],
+      "judge": "The patch delivers a compact domain-style redesign in one file with behavior objects and no service/manager/helper layers, but it hard-codes discount source usage and applies a brittle full-refund condition tied to exact request equality.",
+      "prompt": "eo_refactor.md",
+      "score": 90
+    }
+  ],
+  "metadata": {
+    "agent": "codex",
+    "case_sets": [
+      "eo_app_skeleton"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "fast",
+    "model": "gpt-5.3-codex-spark",
+    "model_mode": "fast",
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/elegant_objects/eo_refactor.md"
+    ],
+    "run_id": "20260504-064158-857069-2840cd42",
+    "suite": "elegant_objects"
+  },
+  "prompts": [
+    {
+      "average": 89.1,
+      "cases": 8,
+      "prompt": "eo_refactor.md",
+      "sets": {
+        "eo_app_skeleton": 89.1,
+        "eo_app_skeleton_holdout": 87.0,
+        "eo_app_skeleton_tuning": 90.4,
+        "eo_greenfield": 89.1,
+        "generated": 89.1
+      }
+    }
+  ],
+  "run_id": "20260504-064158-857069-2840cd42",
+  "suite": "elegant_objects",
+  "title": "EO app skeleton full run, top previous prompt, Spark fast"
+}

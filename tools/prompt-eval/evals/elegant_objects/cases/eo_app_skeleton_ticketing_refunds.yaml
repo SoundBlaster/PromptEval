@@ -1,0 +1,56 @@
+id: eo_app_skeleton_ticketing_refunds
+title: Design a ticketing and refunds domain skeleton
+fixture: eo_app_skeleton_ticketing_refunds
+task: |
+  Build a small domain skeleton for event ticketing. It must price tickets with
+  per-ticket fees and early-bird discounts, report capacity shortages across
+  combined demand, and calculate policy-based refunds while returning remaining
+  ticket state. Do not implement persistence, UI, payment, or ticket delivery.
+  The task is intentionally product-level: choose the internal design yourself.
+checks:
+  commands:
+  - ["python", "-m", "pytest", "-q"]
+  - ["python", "-m", "compileall", "-q", "."]
+  required_regex:
+  - pattern: def\s+price_tickets\s*\(
+    target: files
+    paths: ["ticketing/app.py", "ticketing/__init__.py"]
+    reason: Preserve the public pricing API required by tests
+  - pattern: def\s+refund_tickets\s*\(
+    target: files
+    paths: ["ticketing/app.py", "ticketing/__init__.py"]
+    reason: Preserve the public refund API required by tests
+  forbidden_regex:
+  - pattern: \b\w*Service\b
+    target: files
+    reason: Avoid service-centered orchestration in the domain skeleton
+  - pattern: \b\w*Manager\b
+    target: files
+    reason: Avoid manager-centered ticketing design
+  - pattern: \b\w*Helper\b
+    target: files
+    reason: Avoid helper-centered pricing or refund logic
+  max_changed_files: 8
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: |
+  Product-style app skeleton task. Tests prescribe behavior and public API, not
+  the object model. A strong EO solution should discover behavior-rich objects
+  for events, ticket requests, buyers, capacity, orders, refund policy, and ledgers.
+judge:
+  categories: [scope_control, eo_adherence, communication]
+  criteria:
+  - Score EO application design, not generic clean code. Passing tests is necessary
+    but not enough.
+  - Reward behavior-rich collaborating objects for ticket pricing, combined demand,
+    capacity, discounts, refund policy, remaining tickets, and refund state.
+  - Penalize service/manager/helper-centered orchestration, passive data bags,
+    primitive obsession, getter/setter domain modeling, and procedural scripts.
+  - Reward a compact public API with internal object collaboration and no persistence
+    or event-platform overbuild.
+  - Do not require specific class names; judge ownership and collaboration.
+sets: [generated, eo_greenfield, eo_app_skeleton, eo_app_skeleton_holdout]

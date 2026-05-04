@@ -77,8 +77,46 @@ cases:
   - generated
   - eo_greenfield
   - eo_app_skeleton
+  - eo_app_skeleton_tuning
 - path: eo_app_skeleton_library.yaml
   sets:
   - generated
   - eo_greenfield
   - eo_app_skeleton
+  - eo_app_skeleton_tuning
+- path: eo_app_skeleton_mp3_player.yaml
+  sets:
+  - generated
+  - eo_greenfield
+  - eo_app_skeleton
+  - eo_app_skeleton_tuning
+- path: eo_app_skeleton_warehouse_picking.yaml
+  sets:
+  - generated
+  - eo_greenfield
+  - eo_app_skeleton
+  - eo_app_skeleton_tuning
+- path: eo_app_skeleton_meal_delivery.yaml
+  sets:
+  - generated
+  - eo_greenfield
+  - eo_app_skeleton
+  - eo_app_skeleton_tuning
+- path: eo_app_skeleton_hotel_booking.yaml
+  sets:
+  - generated
+  - eo_greenfield
+  - eo_app_skeleton
+  - eo_app_skeleton_holdout
+- path: eo_app_skeleton_clinic_appointments.yaml
+  sets:
+  - generated
+  - eo_greenfield
+  - eo_app_skeleton
+  - eo_app_skeleton_holdout
+- path: eo_app_skeleton_ticketing_refunds.yaml
+  sets:
+  - generated
+  - eo_greenfield
+  - eo_app_skeleton
+  - eo_app_skeleton_holdout

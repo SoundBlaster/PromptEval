@@ -1,0 +1,164 @@
+{
+  "analysis": [
+    {
+      "prompt": "eo_refactor.md",
+      "strengths": [
+        "Strong cases (>=90): eo_app_skeleton_bookstore, eo_app_skeleton_mp3_player, eo_app_skeleton_meal_delivery, eo_app_skeleton_hotel_booking, eo_app_skeleton_ticketing_refunds."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): eo_app_skeleton_library (63), eo_app_skeleton_warehouse_picking (78), eo_app_skeleton_clinic_appointments (81).",
+        "Failure tags: commands_failed x3, syntax_error x1, carrier_acceptance_allows_mutation_when_rejected x1, batch_capacity_matching_routing_bug x1."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "eo_app_skeleton_bookstore",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "The patch largely satisfies the domain goals with compact quote/order APIs and deferred stock reservation after authorization, but the domain model is still somewhat DTO-heavy (e.g., minimal order abstraction, behavior split by type checks) rather than fully ownership-driven collaborators.",
+      "prompt": "eo_refactor.md",
+      "score": 95
+    },
+    {
+      "case_id": "eo_app_skeleton_library",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "syntax_error"
+      ],
+      "judge": "The refactor moves behavior into domain objects, but a syntax error makes the patch non-runnable and return-book handling remains partially modeled, reducing overall correctness and EO quality.",
+      "prompt": "eo_refactor.md",
+      "score": 63
+    },
+    {
+      "case_id": "eo_app_skeleton_mp3_player",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "The patch cleanly models MP3 player domain behavior with focused objects and remains within the required public API and scope, with only minor losses in explicitness but no major semantic violations.",
+      "prompt": "eo_refactor.md",
+      "score": 97
+    },
+    {
+      "case_id": "eo_app_skeleton_warehouse_picking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "carrier_acceptance_allows_mutation_when_rejected"
+      ],
+      "judge": "The patch adds domain objects and keeps the external API small, but it regresses the required commit contract by not reliably preserving input/commit behavior around carrier rejection.",
+      "prompt": "eo_refactor.md",
+      "score": 78
+    },
+    {
+      "case_id": "eo_app_skeleton_meal_delivery",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "The patch delivers the required domain behavior with object boundaries for quoting and order placement while largely avoiding service/manager/helper orchestration, but it makes only a small behavioral-domain compromise and keeps scope compact.",
+      "prompt": "eo_refactor.md",
+      "score": 93
+    },
+    {
+      "case_id": "eo_app_skeleton_hotel_booking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "The patch delivers the required hotel-booking domain skeleton with collaborative value objects and the required APIs, while staying mostly within scope and honoring EO guidance, with only minor semantic/encapsulation tradeoffs.",
+      "prompt": "eo_refactor.md",
+      "score": 94
+    },
+    {
+      "case_id": "eo_app_skeleton_clinic_appointments",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "batch_capacity_matching_routing_bug"
+      ],
+      "judge": "The patch captures the intended domain shape with bounded objects, but it has a concrete behavioral regression in scheduling and still relies too heavily on raw dict-based flow at domain boundaries.",
+      "prompt": "eo_refactor.md",
+      "score": 81
+    },
+    {
+      "case_id": "eo_app_skeleton_ticketing_refunds",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "The patch cleanly redirects ticket pricing/refunds through domain objects while preserving the required API, but does not itself demonstrate the new domain behavior in this diff beyond orchestration refactoring.",
+      "prompt": "eo_refactor.md",
+      "score": 96
+    }
+  ],
+  "metadata": {
+    "agent": "codex",
+    "case_sets": [
+      "eo_app_skeleton"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "fast",
+    "model": "gpt-5.3-codex-spark",
+    "model_mode": "fast",
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/elegant_objects/eo_refactor.md"
+    ],
+    "run_id": "20260504-070707-023363-eb0f943e",
+    "suite": "elegant_objects"
+  },
+  "prompts": [
+    {
+      "average": 87.1,
+      "cases": 8,
+      "prompt": "eo_refactor.md",
+      "sets": {
+        "eo_app_skeleton": 87.1,
+        "eo_app_skeleton_holdout": 90.3,
+        "eo_app_skeleton_tuning": 85.2,
+        "eo_greenfield": 87.1,
+        "generated": 87.1
+      }
+    }
+  ],
+  "run_id": "20260504-070707-023363-eb0f943e",
+  "suite": "elegant_objects",
+  "title": "EO app skeleton full rerun, top previous prompt, Spark fast"
+}

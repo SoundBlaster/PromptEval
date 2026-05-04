@@ -35,10 +35,12 @@ def test_codex_agent_sees_only_before_fixture(monkeypatch):
 
     run_suite(root, "elegant_objects", p, "codex", case_sets=["eo_app_skeleton"])
 
-    assert len(seen) == 2
+    assert len(seen) == 8
     assert all(item["has_solutions"] is False for item in seen)
     assert any("bookstore/app.py" in item["files"] for item in seen)
     assert any("library_app/app.py" in item["files"] for item in seen)
+    assert any("hotel_booking/app.py" in item["files"] for item in seen)
+    assert any("ticketing/app.py" in item["files"] for item in seen)
     assert all("Good solution" not in item["task"] for item in seen)
     assert all("BookstoreService" not in item["task"] for item in seen)
     assert all("LibraryManager" not in item["task"] for item in seen)
