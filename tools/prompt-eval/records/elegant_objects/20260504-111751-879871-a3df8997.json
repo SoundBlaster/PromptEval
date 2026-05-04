@@ -1,0 +1,156 @@
+{
+  "analysis": [
+    {
+      "prompt": "eo_refactor.md",
+      "strengths": [
+        "Strong cases (>=90): eo_app_skeleton_bookstore, eo_app_skeleton_library, eo_app_skeleton_mp3_player, eo_app_skeleton_warehouse_picking, eo_app_skeleton_meal_delivery."
+      ],
+      "weaknesses": [
+        "Failure tags: minor_primitive_obsession x1."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "eo_app_skeleton_bookstore",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "Solid compact domain skeleton with useful object collaboration, though some orchestration and primitive dict exposure remain.",
+      "prompt": "eo_refactor.md",
+      "score": 94
+    },
+    {
+      "case_id": "eo_app_skeleton_library",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "The patch stays narrow and builds a workable object model, though orchestration remains somewhat centralized and primitives/dicts still leak through much of the domain.",
+      "prompt": "eo_refactor.md",
+      "score": 93
+    },
+    {
+      "case_id": "eo_app_skeleton_mp3_player",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "The patch models the MP3 player domain with compact collaborating objects and stays tightly within scope, with only minor boundary DTO/getter-style leakage.",
+      "prompt": "eo_refactor.md",
+      "score": 98
+    },
+    {
+      "case_id": "eo_app_skeleton_warehouse_picking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "minor_primitive_obsession"
+      ],
+      "judge": "The patch builds a compact behavior-oriented picking skeleton with some remaining raw-dict and payload-oriented modeling.",
+      "prompt": "eo_refactor.md",
+      "score": 97
+    },
+    {
+      "case_id": "eo_app_skeleton_meal_delivery",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "Compact, well-scoped object model with good domain collaboration, though several wrappers remain fairly passive and primitive-backed.",
+      "prompt": "eo_refactor.md",
+      "score": 96
+    },
+    {
+      "case_id": "eo_app_skeleton_hotel_booking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "Compact domain skeleton with useful object collaboration, though some dataclass payload conversion and decision orchestration remain procedural.",
+      "prompt": "eo_refactor.md",
+      "score": 94
+    },
+    {
+      "case_id": "eo_app_skeleton_clinic_appointments",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "Compact domain skeleton with useful object collaboration, though some orchestration and primitive/dict boundary leakage remain.",
+      "prompt": "eo_refactor.md",
+      "score": 94
+    },
+    {
+      "case_id": "eo_app_skeleton_ticketing_refunds",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "Compact domain objects collaborate well for pricing, shortages, and refunds, with only moderate primitive/data-bag leakage.",
+      "prompt": "eo_refactor.md",
+      "score": 96
+    }
+  ],
+  "metadata": {
+    "agent": "codex",
+    "case_sets": [
+      "eo_app_skeleton"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.5",
+    "judge_model_mode": "medium",
+    "model": "gpt-5.5",
+    "model_mode": "medium",
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/elegant_objects/eo_refactor.md"
+    ],
+    "run_id": "20260504-111751-879871-a3df8997",
+    "suite": "elegant_objects"
+  },
+  "prompts": [
+    {
+      "average": 95.2,
+      "cases": 8,
+      "prompt": "eo_refactor.md",
+      "sets": {
+        "eo_app_skeleton": 95.2,
+        "eo_app_skeleton_holdout": 94.7,
+        "eo_app_skeleton_tuning": 95.6,
+        "eo_greenfield": 95.2,
+        "generated": 95.2
+      }
+    }
+  ],
+  "run_id": "20260504-111751-879871-a3df8997",
+  "suite": "elegant_objects",
+  "title": "EO app skeleton full run, gpt-5.5 medium"
+}

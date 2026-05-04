@@ -88,7 +88,7 @@ def test_generate_case_cli_accepts_description_file(tmp_path, monkeypatch, capsy
     cli.main()
 
     root = Path(__file__).resolve().parents[1]
-    assert calls == [("Build from file", "sample", root / "generated-cases", "gpt-5.3-codex-spark", "fast", None)]
+    assert calls == [("Build from file", "sample", root / "generated-cases", "gpt-5.3-codex-spark", None, None)]
     assert str(tmp_path / "generated") in capsys.readouterr().out
 
 

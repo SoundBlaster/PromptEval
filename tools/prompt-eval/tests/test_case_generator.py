@@ -91,7 +91,10 @@ def test_generate_case_uses_codex_and_copies_output(tmp_path, monkeypatch):
 
 
 def test_generate_case_detects_nested_python_fixture(tmp_path, monkeypatch):
+    calls = []
+
     def fake_run_codex(sandbox, task, prompt_text, model, model_mode, codex_bin):
+        calls.append((model, model_mode, codex_bin))
         _write_nested_generated(sandbox, "nested_python")
         return AgentRun(ok=True)
 
@@ -101,6 +104,7 @@ def test_generate_case_detects_nested_python_fixture(tmp_path, monkeypatch):
     case_yaml = yaml.safe_load((generated.output_dir / "case.yaml").read_text())
 
     assert case_yaml["checks"]["commands"] == [["python", "-m", "pytest", "-q"], ["python", "-m", "compileall", "-q", "."]]
+    assert calls == [("gpt-5.3-codex-spark", None, None)]
 
 
 def test_generate_case_removes_temp_workspace_after_copy(tmp_path, monkeypatch):
