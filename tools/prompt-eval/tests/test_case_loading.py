@@ -18,6 +18,17 @@ def test_elegant_objects_suite_includes_medium_fixture_without_task_leakage():
     assert bookstore.judge
     assert [item.id for item in bookstore.judge.binary_evals] == ["ownership", "local_api_scope"]
     assert bookstore.judge.binary_evals[0].category == "eo_adherence"
+    holdout = {
+        case.id: case
+        for case in cases
+        if case.id in {
+            "eo_app_skeleton_hotel_booking",
+            "eo_app_skeleton_clinic_appointments",
+            "eo_app_skeleton_ticketing_refunds",
+        }
+    }
+    assert len(holdout) == 3
+    assert all(case.judge and [item.id for item in case.judge.binary_evals] == ["ownership", "local_api_scope"] for case in holdout.values())
 
 def test_elegant_objects_suite_declares_tuning_and_validation_sets():
     root = Path(__file__).resolve().parents[1]
