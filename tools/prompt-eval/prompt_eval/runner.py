@@ -6,7 +6,7 @@ import shutil
 import uuid
 from .config import load_suite
 from .sandbox import prepare_sandbox
-from .checks import git_diff, run_checks
+from .checks import command_name, git_diff, run_checks
 from .scoring import score_from_checks
 from .models import CaseRunResult
 from .agents.fixture_agent import apply_fixture_solution
@@ -20,6 +20,51 @@ from .reports import write_report
 
 def _check_summary(checks) -> str:
     return "; ".join(f"{'pass' if check.passed else 'fail'} {check.name}: {check.detail}" for check in checks)
+
+
+def _acceptance_contract(case) -> str:
+    lines = ["Acceptance criteria visible to the coding agent:", "", "Deterministic checks:"]
+    if case.checks.commands:
+        lines.extend(f"- Run `{command_name(cmd)}`" for cmd in case.checks.commands)
+    if case.checks.required_files:
+        lines.extend(f"- Required file: `{path}`" for path in case.checks.required_files)
+    for check in case.checks.required_regex:
+        paths = f" paths={','.join(check.paths)}" if check.paths else ""
+        reason = f" reason={check.reason}" if check.reason else ""
+        lines.append(f"- Required pattern `{check.pattern}` target={check.target}{paths}{reason}")
+    for check in case.checks.forbidden_regex:
+        paths = f" paths={','.join(check.paths)}" if check.paths else ""
+        reason = f" reason={check.reason}" if check.reason else ""
+        lines.append(f"- Forbidden pattern `{check.pattern}` target={check.target}{paths}{reason}")
+    if case.checks.max_changed_files is not None:
+        lines.append(f"- Change at most {case.checks.max_changed_files} files")
+    if len(lines) == 3:
+        lines.append("- No deterministic checks declared")
+
+    if case.rubric:
+        lines += ["", "Rubric categories:"]
+        lines.extend(f"- {key}: {value}" for key, value in case.rubric.items())
+
+    if case.judge and case.judge.criteria:
+        lines += ["", "Semantic review criteria:"]
+        lines.extend(f"- {item}" for item in case.judge.criteria)
+
+    if case.judge and case.judge.binary_evals:
+        lines += ["", "Binary semantic acceptance checks:"]
+        for item in case.judge.binary_evals:
+            category = f" category={item.category}" if item.category else ""
+            lines.append(f"- {item.id}{category}: {item.question}")
+            if item.pass_condition:
+                lines.append(f"  Pass: {item.pass_condition}")
+            if item.fail_condition:
+                lines.append(f"  Fail: {item.fail_condition}")
+
+    lines += ["", "Before finishing, run the narrowest relevant checks available in this workspace."]
+    return "\n".join(lines)
+
+
+def _agent_task(case) -> str:
+    return f"{case.task.rstrip()}\n\n{_acceptance_contract(case)}\n"
 
 
 def _run_judge(
@@ -86,7 +131,7 @@ def run_suite(
                 elif agent == "fixture-bad":
                     ar = apply_fixture_solution(sandbox, fixture_root, "bad")
                 elif agent == "codex":
-                    ar = run_codex(sandbox, case.task, ptxt, model, model_mode, codex_bin)
+                    ar = run_codex(sandbox, _agent_task(case), ptxt, model, model_mode, codex_bin)
                 else:
                     ar = run_mock(case.task)
                 diff = git_diff(sandbox)
