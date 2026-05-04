@@ -1,0 +1,56 @@
+id: eo_app_skeleton_bookstore
+title: Design an online bookstore domain skeleton
+fixture: eo_app_skeleton_bookstore
+task: |
+  Build a small domain skeleton for an online bookstore. It must quote carts,
+  apply loyalty and multi-book discounts, reject unavailable books, reserve stock
+  only after payment authorization, and expose a compact public API for quote and
+  order placement. Do not implement persistence, web UI, or payment integration.
+  The task is intentionally product-level: choose the internal design yourself.
+checks:
+  commands:
+  - ["python", "-m", "pytest", "-q"]
+  - ["python", "-m", "compileall", "-q", "."]
+  required_regex:
+  - pattern: def\s+quote_order\s*\(
+    target: files
+    paths: ["bookstore/app.py", "bookstore/__init__.py"]
+    reason: Preserve the public quote API required by tests
+  - pattern: def\s+place_order\s*\(
+    target: files
+    paths: ["bookstore/app.py", "bookstore/__init__.py"]
+    reason: Preserve the public order API required by tests
+  forbidden_regex:
+  - pattern: \b\w*Service\b
+    target: files
+    reason: Avoid service-centered orchestration in the domain skeleton
+  - pattern: \b\w*Manager\b
+    target: files
+    reason: Avoid manager-centered domain design
+  - pattern: \b\w*Helper\b
+    target: files
+    reason: Avoid helper-centered pricing or checkout logic
+  max_changed_files: 8
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: |
+  Product-style app skeleton task. Tests prescribe behavior and public API, not
+  the object model. A strong EO solution should discover behavior-rich objects
+  for cart, stock, discounts, payment authorization, quotes, and orders.
+judge:
+  categories: [scope_control, eo_adherence, communication]
+  criteria:
+  - Score EO application design, not generic clean code. Passing tests is necessary
+    but not enough.
+  - Reward behavior-rich collaborating objects for cart, stock, discount, quote,
+    order, and payment authorization responsibilities.
+  - Penalize service/manager/helper-centered orchestration, passive data bags,
+    primitive obsession, getter/setter domain modeling, and procedural scripts.
+  - Reward a compact public API with internal object collaboration and no persistence
+    or web framework overbuild.
+  - Do not require specific class names; judge ownership and collaboration.
+sets: [generated, eo_greenfield, eo_app_skeleton]
