@@ -1,0 +1,138 @@
+{
+  "analysis": [
+    {
+      "prompt": "eo_refactor.md",
+      "strengths": [
+        "Strong cases (>=90): eo_app_skeleton_hotel_booking, eo_app_skeleton_clinic_appointments, eo_app_skeleton_ticketing_refunds.",
+        "No failure tags recorded.",
+        "No judge binary eval failures recorded."
+      ],
+      "weaknesses": [
+        "No clear weaknesses surfaced by scores or failure tags."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "eo_app_skeleton_hotel_booking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "The patch generally follows the requested EO-oriented design with compact domain objects and preserved APIs, with only minor scope/defensive concerns.",
+      "judge_binary_evals": [
+        {
+          "category": "eo_adherence",
+          "evidence": "Pricing logic is in `RoomRate` and `Stay`, availability in `Inventory`, and reservation authorization + mutation in `RoomType`; orchestration is limited to `Hotel` + top-level functions, with no Service/Manager/Helper-style coordinators.",
+          "id": "ownership",
+          "passed": true,
+          "question": "Does the patch keep pricing, availability, and reservation behavior inside focused domain objects rather than helper-style orchestration or passive data carriers?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "The public contract remains `quote_stay` and `reserve_stay` only (plus deterministic API-preserving wrappers), and no persistence, web framework, or payment provider integrations were added.",
+          "id": "local_api_scope",
+          "passed": true,
+          "question": "Does the patch keep a compact public API while avoiding persistence, framework setup, or unrelated booking-platform overbuild?"
+        }
+      ],
+      "prompt": "eo_refactor.md",
+      "score": 95
+    },
+    {
+      "case_id": "eo_app_skeleton_clinic_appointments",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "The refactor is narrowly scoped, domain-focused, and keeps the required public API intact while avoiding prohibited orchestration-style Service/Manager/Helper naming patterns.",
+      "judge_binary_evals": [
+        {
+          "category": "eo_adherence",
+          "evidence": "Scheduling/eligibility uses `VisitRequest`, `PatientProfile`, `DoctorPool`, and `EligibilityPolicy`, while check-in uses `Arrival`, `AppointmentWindow`, and `DaySchedule`; orchestration in `schedule_visits`/`check_in` is thin and delegates core decisions to domain objects.",
+          "id": "ownership",
+          "passed": true,
+          "question": "Does the patch keep scheduling, eligibility, and check-in behavior inside focused domain objects rather than helper-style orchestration or passive data carriers?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Public surface remains limited to `schedule_visits` and `check_in` in `__init__`/`app`, with internal refactor into domain classes only and no persistence, UI, billing, messaging, or additional external-facing layers.",
+          "id": "local_api_scope",
+          "passed": true,
+          "question": "Does the patch keep a compact public API while avoiding persistence, messaging, or unrelated appointment-platform overbuild?"
+        }
+      ],
+      "prompt": "eo_refactor.md",
+      "score": 96
+    },
+    {
+      "case_id": "eo_app_skeleton_ticketing_refunds",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "The patch stays narrowly scoped and shifts behavior to domain objects, resulting in a compact ticketing skeleton with no evident overbuild.",
+      "judge_binary_evals": [
+        {
+          "category": "eo_adherence",
+          "evidence": "Public functions now build domain objects (`EventProfile`, `TicketDemand`, `TicketPricer`, `OrderState`, `RefundPolicy`) and delegate quote/refund logic to them, with only thin boundary orchestration.",
+          "id": "ownership",
+          "passed": true,
+          "question": "Does the patch keep pricing, capacity, and refund behavior inside focused domain objects rather than helper-style orchestration or passive data carriers?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Changes are confined to `ticketing/app.py` and preserve required APIs (`price_tickets`, `refund_tickets`) without adding infrastructure or platform-level layers.",
+          "id": "local_api_scope",
+          "passed": true,
+          "question": "Does the patch keep a compact public API while avoiding persistence, delivery, or unrelated ticketing-platform overbuild?"
+        }
+      ],
+      "prompt": "eo_refactor.md",
+      "score": 97
+    }
+  ],
+  "metadata": {
+    "agent": "codex",
+    "case_sets": [
+      "eo_app_skeleton_holdout"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "xhigh",
+    "model": "gpt-5.3-codex-spark",
+    "model_mode": "xhigh",
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/elegant_objects/eo_refactor.md"
+    ],
+    "run_id": "20260504-210804-582228-1b258f34",
+    "suite": "elegant_objects"
+  },
+  "prompts": [
+    {
+      "average": 96.0,
+      "cases": 3,
+      "prompt": "eo_refactor.md",
+      "sets": {
+        "eo_app_skeleton": 96.0,
+        "eo_app_skeleton_holdout": 96.0,
+        "eo_greenfield": 96.0,
+        "generated": 96.0
+      }
+    }
+  ],
+  "run_id": "20260504-210804-582228-1b258f34",
+  "suite": "elegant_objects",
+  "title": "EO app skeleton holdout, Spark xhigh with visible acceptance criteria"
+}
