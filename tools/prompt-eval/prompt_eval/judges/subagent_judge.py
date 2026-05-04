@@ -37,6 +37,7 @@ def _json_payload(text: str) -> dict:
         raise ValueError("judge response does not contain a JSON object")
     return json.loads(stripped[start : end + 1])
 
+
 def _binary_eval_payload(case: EvalCase, payload: dict) -> list[JudgeBinaryEvalResult]:
     expected = {item.id: item for item in (case.judge.binary_evals if case.judge else [])}
     results = []
@@ -96,9 +97,9 @@ def _prompt(case: EvalCase, prompt_text: str, diff: str, deterministic_summary: 
     criteria = "\n".join(f"- {item}" for item in (case.judge.criteria if case.judge else []))
     binary_evals = case.judge.binary_evals if case.judge else []
     binary_eval_instructions = "\n".join(
-        f'- `{item.id}` ({item.category or "uncategorized"}): {item.question}\n'
-        f'  Pass: {item.pass_condition or "Satisfies the intended design signal."}\n'
-        f'  Fail: {item.fail_condition or "Does not satisfy the intended design signal."}'
+        f"- `{item.id}` ({item.category or 'uncategorized'}): {item.question}\n"
+        f"  Pass: {item.pass_condition or 'Satisfies the intended design signal.'}\n"
+        f"  Fail: {item.fail_condition or 'Does not satisfy the intended design signal.'}"
         for item in binary_evals
     )
     rubric = json.dumps(case.rubric, indent=2, sort_keys=True)

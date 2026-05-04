@@ -1,6 +1,9 @@
 from __future__ import annotations
 from pathlib import Path
-import json, datetime, shutil, uuid
+import json
+import datetime
+import shutil
+import uuid
 from .config import load_suite
 from .sandbox import prepare_sandbox
 from .checks import git_diff, run_checks
@@ -88,15 +91,27 @@ def run_suite(
                     ar = run_mock(case.task)
                 diff = git_diff(sandbox)
                 checks = run_checks(case, sandbox, diff)
-                judge_result = _run_judge(judge, case, ptxt, diff, checks, judge_model, judge_model_mode, judge_codex_bin or codex_bin)
+                judge_result = _run_judge(
+                    judge, case, ptxt, diff, checks, judge_model, judge_model_mode, judge_codex_bin or codex_bin
+                )
                 score = score_from_checks(checks, case.rubric, judge_result)
                 case_dir = run_dir / Path(p).stem / case.id
                 case_dir.mkdir(parents=True, exist_ok=True)
                 (case_dir / "diff.patch").write_text(diff)
                 (case_dir / "trace.jsonl").write_text("\n".join(json.dumps(x) for x in (ar.trace or [])))
-                res = CaseRunResult(suite=suite, prompt=str(p), case_id=case.id, score=score, checks=checks,
-                                    diff_path=str(case_dir / "diff.patch"), transcript_path=str(case_dir / "trace.jsonl"),
-                                    case_sets=case.sets, judge=judge_result, stdout=ar.stdout, stderr=ar.stderr)
+                res = CaseRunResult(
+                    suite=suite,
+                    prompt=str(p),
+                    case_id=case.id,
+                    score=score,
+                    checks=checks,
+                    diff_path=str(case_dir / "diff.patch"),
+                    transcript_path=str(case_dir / "trace.jsonl"),
+                    case_sets=case.sets,
+                    judge=judge_result,
+                    stdout=ar.stdout,
+                    stderr=ar.stderr,
+                )
                 (case_dir / "result.json").write_text(json.dumps(res.to_json(), indent=2))
                 results.append(res)
             finally:

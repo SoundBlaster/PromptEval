@@ -11,9 +11,19 @@ dependencies = ["PyYAML>=6.0"]
 
 [project.optional-dependencies]
 judge = ["openai>=1.0.0"]
+dev = ["pytest", "ruff>=0.15.0"]
 
 [project.scripts]
 peval = "prompt_eval.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+extend-exclude = [
+    "fixtures",
+    "generated-cases",
+    "records",
+    "runs",
+]

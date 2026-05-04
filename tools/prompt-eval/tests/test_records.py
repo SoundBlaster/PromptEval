@@ -1,6 +1,5 @@
 import json
 
-from pathlib import Path
 
 from prompt_eval.records import record_run
 

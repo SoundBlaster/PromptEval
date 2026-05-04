@@ -3,9 +3,11 @@ from prompt_eval.runner import run_suite
 from prompt_eval.agents.base import AgentRun
 import json
 
+
 def avg(run_dir):
-    rows=[json.loads(l) for l in (run_dir/"results.jsonl").read_text().splitlines() if l.strip()]
-    return sum(r["score"]["total"] for r in rows)/len(rows)
+    rows = [json.loads(line) for line in (run_dir / "results.jsonl").read_text().splitlines() if line.strip()]
+    return sum(r["score"]["total"] for r in rows) / len(rows)
+
 
 def test_good_beats_bad():
     root = Path(__file__).resolve().parents[1]
@@ -13,6 +15,7 @@ def test_good_beats_bad():
     good = run_suite(root, "elegant_objects", p, "fixture-good")
     bad = run_suite(root, "elegant_objects", p, "fixture-bad")
     assert avg(good) > avg(bad)
+
 
 def test_codex_agent_sees_only_before_fixture(monkeypatch):
     root = Path(__file__).resolve().parents[1]

@@ -1,7 +1,9 @@
 from __future__ import annotations
 import os
 from pathlib import Path
-import shutil, subprocess, tempfile
+import shutil
+import subprocess
+import tempfile
 from .base import AgentRun
 
 MODEL_MODE_CONFIG = {
@@ -57,10 +59,14 @@ def run_codex(
 ) -> AgentRun:
     executable = codex_command(codex_bin)
     if executable is None:
-        return AgentRun(ok=False, stderr=codex_error(codex_bin), trace=[{"event":"codex_missing"}])
+        return AgentRun(ok=False, stderr=codex_error(codex_bin), trace=[{"event": "codex_missing"}])
     if model_mode and model_mode not in MODEL_MODE_CONFIG:
         supported = ", ".join(sorted(MODEL_MODE_CONFIG))
-        return AgentRun(ok=False, stderr=f"unsupported model mode {model_mode!r}; supported modes: {supported}", trace=[{"event":"codex_unsupported_model_mode", "model_mode":model_mode}])
+        return AgentRun(
+            ok=False,
+            stderr=f"unsupported model mode {model_mode!r}; supported modes: {supported}",
+            trace=[{"event": "codex_unsupported_model_mode", "model_mode": model_mode}],
+        )
     (sandbox / "AGENTS.md").write_text(prompt_text)
     cmd = [executable, "exec", "--ignore-user-config", "--json", "--full-auto"]
     if model:
@@ -77,5 +83,5 @@ def run_codex(
         shutil.rmtree(codex_home, ignore_errors=True)
     trace = []
     if proc.stdout:
-        trace = [{"raw": l} for l in proc.stdout.splitlines()]
+        trace = [{"raw": line} for line in proc.stdout.splitlines()]
     return AgentRun(ok=proc.returncode == 0, stdout=proc.stdout, stderr=proc.stderr, trace=trace)

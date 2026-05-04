@@ -121,11 +121,7 @@ def _prompt_analysis(rows: list[dict[str, Any]], summaries: list[dict[str, Any]]
         strengths = []
         weaknesses = []
         high_cases = [row["case_id"] for row in prompt_rows if row["score"]["total"] >= 90]
-        low_cases = [
-            f"{row['case_id']} ({row['score']['total']})"
-            for row in prompt_rows
-            if row["score"]["total"] < 85
-        ]
+        low_cases = [f"{row['case_id']} ({row['score']['total']})" for row in prompt_rows if row["score"]["total"] < 85]
         tags = _failure_tags(prompt_rows)
         failed_evals = _binary_eval_failures(prompt_rows)
         wins, shared = _shared_case_wins(prompt, rows)
@@ -212,7 +208,13 @@ def _markdown(record: dict[str, Any]) -> str:
         strengths = "<br>".join(item["strengths"]).replace("|", "\\|")
         weaknesses = "<br>".join(item["weaknesses"]).replace("|", "\\|")
         lines.append(f"| {item['prompt']} | {strengths} | {weaknesses} |")
-    lines += ["", "## Case Results", "", "| Case | Prompt | Score | Failure tags | Judge | Judge evals |", "|---|---|---:|---|---|---|"]
+    lines += [
+        "",
+        "## Case Results",
+        "",
+        "| Case | Prompt | Score | Failure tags | Judge | Judge evals |",
+        "|---|---|---:|---|---|---|",
+    ]
     for case in record["cases"]:
         tags = ", ".join(case["failure_tags"])
         judge = str(case["judge"]).replace("\n", "<br>").replace("|", "\\|")
@@ -223,8 +225,7 @@ def _markdown(record: dict[str, Any]) -> str:
                 evals = "all passed"
             else:
                 evals = "; ".join(
-                    f"{item.get('id', 'unknown')}: {str(item.get('evidence', 'failed'))}"
-                    for item in failed
+                    f"{item.get('id', 'unknown')}: {str(item.get('evidence', 'failed'))}" for item in failed
                 ).replace("|", "\\|")
         else:
             evals = ""

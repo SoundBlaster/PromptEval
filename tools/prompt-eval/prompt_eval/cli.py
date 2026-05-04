@@ -38,7 +38,9 @@ def compare_run(run: Path) -> None:
     headers = ["Prompt", "Cases", "Avg score", *[_label(k) for k in set_keys]]
     print("| " + " | ".join(headers) + " |")
     print("|" + "|".join(["---", "---:", "---:", *(["---:"] * len(set_keys))]) + "|")
-    ranked = sorted(grouped.items(), key=lambda item: sum(r["score"]["total"] for r in item[1]) / len(item[1]), reverse=True)
+    ranked = sorted(
+        grouped.items(), key=lambda item: sum(r["score"]["total"] for r in item[1]) / len(item[1]), reverse=True
+    )
     for prompt, rows in ranked:
         scores = [r["score"]["total"] for r in rows]
         out = [Path(prompt).name, str(len(scores)), f"{sum(scores) / len(scores):.1f}"]
@@ -57,17 +59,27 @@ def main() -> None:
     runp.add_argument("--prompts", nargs="+", required=True)
     runp.add_argument("--agent", default="noop", choices=["fixture-good", "fixture-bad", "codex", "noop"])
     runp.add_argument("--model", help="model name for agents that support model selection")
-    runp.add_argument("--model-mode", choices=SUPPORTED_MODEL_MODES, help="model execution mode for agents that support it")
+    runp.add_argument(
+        "--model-mode", choices=SUPPORTED_MODEL_MODES, help="model execution mode for agents that support it"
+    )
     runp.add_argument("--codex-bin", help="path or command name for the Codex CLI binary")
-    runp.add_argument("--case-set", action="append", help="run only cases tagged with this set; repeat to include multiple sets")
-    runp.add_argument("--judge", default="none", choices=["none", "mock", "subagent"], help="optional LLM-as-judge layer")
+    runp.add_argument(
+        "--case-set", action="append", help="run only cases tagged with this set; repeat to include multiple sets"
+    )
+    runp.add_argument(
+        "--judge", default="none", choices=["none", "mock", "subagent"], help="optional LLM-as-judge layer"
+    )
     runp.add_argument("--judge-model", help="model name for the LLM judge")
-    runp.add_argument("--judge-model-mode", choices=SUPPORTED_MODEL_MODES, help="model execution mode for the LLM judge")
+    runp.add_argument(
+        "--judge-model-mode", choices=SUPPORTED_MODEL_MODES, help="model execution mode for the LLM judge"
+    )
     runp.add_argument("--judge-codex-bin", help="path or command name for the Codex CLI used by the LLM judge")
     runp.add_argument("--record", action="store_true", help="write a compact versioned record for this run")
     runp.add_argument("--record-title", help="human-readable title for --record")
-    cmp = sub.add_parser("compare", help="print prompt average scores for a completed run"); cmp.add_argument("--run", required=True)
-    rep = sub.add_parser("report", help="print report.md for a completed run"); rep.add_argument("--run", required=True)
+    cmp = sub.add_parser("compare", help="print prompt average scores for a completed run")
+    cmp.add_argument("--run", required=True)
+    rep = sub.add_parser("report", help="print report.md for a completed run")
+    rep.add_argument("--run", required=True)
     rec = sub.add_parser("record", help="write a compact versioned record for a completed run")
     rec.add_argument("--run", required=True)
     rec.add_argument("--title")
@@ -77,7 +89,12 @@ def main() -> None:
     gen.add_argument("--case-id", help="stable snake_case case id; defaults to a slug from the description")
     gen.add_argument("--output-root", default="generated-cases", help="directory where <case-id>/ will be written")
     gen.add_argument("--model", default=DEFAULT_GENERATOR_MODEL, help="Codex model for fixture generation")
-    gen.add_argument("--model-mode", default=DEFAULT_GENERATOR_MODEL_MODE, choices=SUPPORTED_MODEL_MODES, help="Codex model execution mode")
+    gen.add_argument(
+        "--model-mode",
+        default=DEFAULT_GENERATOR_MODEL_MODE,
+        choices=SUPPORTED_MODEL_MODES,
+        help="Codex model execution mode",
+    )
     gen.add_argument("--codex-bin", help="path or command name for the Codex CLI binary")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
@@ -89,7 +106,8 @@ def main() -> None:
                 suffix = f" ({', '.join(sets)})" if sets else ""
                 print(f"- {s.name}{suffix}")
         print("Prompts:")
-        for p in (root / "prompts").rglob("*.md"): print(f"- {p.relative_to(root)}")
+        for p in (root / "prompts").rglob("*.md"):
+            print(f"- {p.relative_to(root)}")
     elif args.cmd == "run":
         run_dir = run_suite(
             root,
@@ -130,6 +148,7 @@ def main() -> None:
         print(generated.output_dir)
     else:
         print_report(Path(args.run))
+
 
 if __name__ == "__main__":
     main()

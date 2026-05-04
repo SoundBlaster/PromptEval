@@ -6,6 +6,7 @@ from prompt_eval.agents.fixture_agent import apply_fixture_solution
 from prompt_eval.checks import git_diff, run_checks
 from prompt_eval.models import CaseChecks, EvalCase, RegexCheck
 
+
 def test_regex_and_command_checks():
     root = Path(__file__).resolve().parents[1]
     case = [c for c in load_suite(root, "elegant_objects") if c.id == "static_helper_relapse"][0]
@@ -16,6 +17,7 @@ def test_regex_and_command_checks():
         assert any((not c.passed and "forbidden_regex" in c.name) for c in checks)
     finally:
         shutil.rmtree(sb, ignore_errors=True)
+
 
 def test_file_regex_checks_can_scope_paths():
     root = Path(__file__).resolve().parents[1]

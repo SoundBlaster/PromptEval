@@ -3,10 +3,12 @@ import re
 import pytest
 from prompt_eval.config import load_suite, suite_case_sets
 
+
 def test_load_suite():
     root = Path(__file__).resolve().parents[1]
     cases = load_suite(root, "elegant_objects")
     assert len(cases) >= 7
+
 
 def test_elegant_objects_suite_includes_medium_fixture_without_task_leakage():
     root = Path(__file__).resolve().parents[1]
@@ -21,14 +23,19 @@ def test_elegant_objects_suite_includes_medium_fixture_without_task_leakage():
     holdout = {
         case.id: case
         for case in cases
-        if case.id in {
+        if case.id
+        in {
             "eo_app_skeleton_hotel_booking",
             "eo_app_skeleton_clinic_appointments",
             "eo_app_skeleton_ticketing_refunds",
         }
     }
     assert len(holdout) == 3
-    assert all(case.judge and [item.id for item in case.judge.binary_evals] == ["ownership", "local_api_scope"] for case in holdout.values())
+    assert all(
+        case.judge and [item.id for item in case.judge.binary_evals] == ["ownership", "local_api_scope"]
+        for case in holdout.values()
+    )
+
 
 def test_elegant_objects_suite_declares_tuning_and_validation_sets():
     root = Path(__file__).resolve().parents[1]
@@ -73,7 +80,11 @@ def test_elegant_objects_suite_declares_tuning_and_validation_sets():
     assert all("eo_app_skeleton_holdout" in case.sets for case in app_skeleton_holdout)
     assert not {case.id for case in app_skeleton_tuning}.intersection({case.id for case in app_skeleton_holdout})
     assert all(case.judge and case.judge.criteria for case in tuning + validation)
-    assert all(case.judge and case.judge.categories == ["scope_control", "eo_adherence", "communication"] for case in tuning + validation)
+    assert all(
+        case.judge and case.judge.categories == ["scope_control", "eo_adherence", "communication"]
+        for case in tuning + validation
+    )
+
 
 def test_elegant_objects_regex_checks_compile():
     root = Path(__file__).resolve().parents[1]
@@ -84,6 +95,7 @@ def test_elegant_objects_regex_checks_compile():
                 re.compile(check.pattern)
             except re.error as exc:
                 pytest.fail(f"{case.id}: invalid regex {check.pattern!r}: {exc}")
+
 
 def test_load_suite_accepts_yaml_syntax(tmp_path):
     suite_dir = tmp_path / "evals" / "custom"
@@ -113,6 +125,7 @@ def test_load_suite_accepts_yaml_syntax(tmp_path):
     cases = load_suite(tmp_path, "custom")
     assert cases[0].task == "Implement the requested change.\n"
     assert cases[0].checks.commands == [["python", "-m", "pytest", "-q"]]
+
 
 def test_load_suite_accepts_case_entries_with_sets(tmp_path):
     suite_dir = tmp_path / "evals" / "custom"

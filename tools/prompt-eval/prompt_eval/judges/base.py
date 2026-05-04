@@ -9,6 +9,7 @@ class JudgeBinaryEvalResult:
     question: str = ""
     evidence: str = ""
 
+
 @dataclass
 class JudgeResult:
     categories: dict[str, int]

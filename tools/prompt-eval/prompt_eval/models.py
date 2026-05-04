@@ -1,6 +1,5 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, asdict
-from pathlib import Path
 from typing import Any
 from .judges.base import JudgeResult
 
@@ -12,12 +11,14 @@ DEFAULT_RUBRIC = {
     "communication": 5,
 }
 
+
 @dataclass
 class RegexCheck:
     pattern: str
     target: str = "diff"
     reason: str = ""
     paths: list[str] = field(default_factory=list)
+
 
 @dataclass
 class CaseChecks:
@@ -27,6 +28,7 @@ class CaseChecks:
     required_regex: list[RegexCheck] = field(default_factory=list)
     max_changed_files: int | None = None
 
+
 @dataclass
 class JudgeBinaryEval:
     id: str
@@ -35,11 +37,13 @@ class JudgeBinaryEval:
     fail_condition: str = ""
     category: str = ""
 
+
 @dataclass
 class CaseJudge:
     criteria: list[str] = field(default_factory=list)
     categories: list[str] = field(default_factory=list)
     binary_evals: list[JudgeBinaryEval] = field(default_factory=list)
+
 
 @dataclass
 class EvalCase:
@@ -53,11 +57,13 @@ class EvalCase:
     sets: list[str] = field(default_factory=list)
     judge: CaseJudge | None = None
 
+
 @dataclass
 class CheckResult:
     passed: bool
     name: str
     detail: str = ""
+
 
 @dataclass
 class ScoreBreakdown:
@@ -65,6 +71,7 @@ class ScoreBreakdown:
     total: int
     failure_tags: list[str] = field(default_factory=list)
     summary: str = ""
+
 
 @dataclass
 class CaseRunResult:

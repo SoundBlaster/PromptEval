@@ -1,6 +1,8 @@
 from pathlib import Path
-import shutil, subprocess
+import shutil
+import subprocess
 from prompt_eval.sandbox import prepare_sandbox
+
 
 def test_prepare_sandbox_has_git_diff_clean():
     root = Path(__file__).resolve().parents[1]
@@ -11,6 +13,7 @@ def test_prepare_sandbox_has_git_diff_clean():
         assert diff == ""
     finally:
         shutil.rmtree(sb, ignore_errors=True)
+
 
 def test_prepare_sandbox_contains_only_before_fixture_files():
     root = Path(__file__).resolve().parents[1]

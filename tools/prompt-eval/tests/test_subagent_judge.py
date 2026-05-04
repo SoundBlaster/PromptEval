@@ -47,6 +47,7 @@ def test_subagent_judge_parse_clamps_category_scores():
 
     assert result.categories == {"eo_adherence": 25}
 
+
 def test_subagent_judge_parse_filters_to_allowed_categories():
     result = _parse(
         json.dumps(
@@ -62,6 +63,7 @@ def test_subagent_judge_parse_filters_to_allowed_categories():
 
     assert result.categories == {"eo_adherence": 18}
 
+
 def test_subagent_judge_parse_honors_empty_allowed_categories():
     result = _parse(
         json.dumps(
@@ -76,6 +78,7 @@ def test_subagent_judge_parse_honors_empty_allowed_categories():
     )
 
     assert result.categories == {}
+
 
 def test_subagent_prompt_uses_case_rubric_categories():
     case = EvalCase(
@@ -95,6 +98,7 @@ def test_subagent_prompt_uses_case_rubric_categories():
     assert "Use only these semantic category keys: `security`, `portability`" in prompt
     assert "eo_adherence" not in prompt
 
+
 def test_subagent_prompt_prefers_explicit_judge_categories():
     case = _case(rubric={"functional_correctness": 40, "scope_control": 20, "eo_adherence": 25, "verification": 10})
     case.judge = CaseJudge(categories=["eo_adherence"])
@@ -102,7 +106,10 @@ def test_subagent_prompt_prefers_explicit_judge_categories():
     assert _judge_categories(case) == ["eo_adherence"]
     prompt = _prompt(case, "agent prompt", "diff", "checks passed")
     assert '"eo_adherence": 25' in prompt
-    assert "functional_correctness" not in prompt.split("Return exactly one JSON object with this shape:", 1)[1].split("failure_tags", 1)[0]
+    assert (
+        "functional_correctness"
+        not in prompt.split("Return exactly one JSON object with this shape:", 1)[1].split("failure_tags", 1)[0]
+    )
 
 
 def test_subagent_judge_parse_binary_evals():

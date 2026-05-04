@@ -2,7 +2,10 @@ from __future__ import annotations
 from .models import DEFAULT_RUBRIC, CheckResult, ScoreBreakdown
 from .judges.base import JudgeResult
 
-def score_from_checks(checks: list[CheckResult], rubric: dict[str, int] | None = None, judge: JudgeResult | None = None) -> ScoreBreakdown:
+
+def score_from_checks(
+    checks: list[CheckResult], rubric: dict[str, int] | None = None, judge: JudgeResult | None = None
+) -> ScoreBreakdown:
     passed = sum(1 for c in checks if c.passed)
     total = len(checks) or 1
     ratio = passed / total

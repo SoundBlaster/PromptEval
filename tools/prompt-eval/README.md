@@ -11,6 +11,13 @@ pip install -e . pytest
 peval list
 ```
 
+## Local checks
+```bash
+python -m ruff check .
+python -m ruff format --check .
+python -m pytest -q
+```
+
 ## Offline demo
 ```bash
 peval run --suite elegant_objects --prompts prompts/elegant_objects/eo_lite.md --agent fixture-good
