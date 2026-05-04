@@ -22,3 +22,11 @@ def test_quote_total_rounds_money_to_two_places():
     )
 
     assert price_quote(lines, Decimal("20.00"), Decimal("0.20")) == Decimal("21.60")
+
+
+def test_discount_percent_and_tax_rate_use_different_units():
+    lines = (
+        {"quantity": 1, "unit_price": Decimal("100.00")},
+    )
+
+    assert price_quote(lines, Decimal("10.00"), Decimal("0.10")) == Decimal("99.00")

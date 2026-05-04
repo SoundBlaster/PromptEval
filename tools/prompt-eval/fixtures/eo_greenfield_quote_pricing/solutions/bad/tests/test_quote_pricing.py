@@ -14,3 +14,11 @@ def test_quote_total_with_discount_and_tax():
     )
 
     assert price_quote(lines, Decimal("10.00"), Decimal("0.20")) == Decimal("27.00")
+
+
+def test_discount_percent_and_tax_rate_use_different_units():
+    lines = (
+        {"quantity": 1, "unit_price": Decimal("100.00")},
+    )
+
+    assert price_quote(lines, Decimal("10.00"), Decimal("0.10")) == Decimal("99.00")
