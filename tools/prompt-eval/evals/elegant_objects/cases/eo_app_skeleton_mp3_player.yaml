@@ -1,0 +1,56 @@
+id: eo_app_skeleton_mp3_player
+title: Design an MP3 player playback domain skeleton
+fixture: eo_app_skeleton_mp3_player
+task: |
+  Build a small domain skeleton for an MP3 player. It must build playlists from
+  requested track ids, skip unavailable or age-restricted tracks, enforce a profile
+  duration limit, and start playback only when account and device constraints allow
+  it. Do not implement persistence, UI, streaming, or codecs. The task is
+  intentionally product-level: choose the internal design yourself.
+checks:
+  commands:
+  - ["python", "-m", "pytest", "-q"]
+  - ["python", "-m", "compileall", "-q", "."]
+  required_regex:
+  - pattern: def\s+build_playlist\s*\(
+    target: files
+    paths: ["mp3_player/app.py", "mp3_player/__init__.py"]
+    reason: Preserve the public playlist API required by tests
+  - pattern: def\s+start_session\s*\(
+    target: files
+    paths: ["mp3_player/app.py", "mp3_player/__init__.py"]
+    reason: Preserve the public playback API required by tests
+  forbidden_regex:
+  - pattern: \b\w*Service\b
+    target: files
+    reason: Avoid service-centered orchestration in the domain skeleton
+  - pattern: \b\w*Manager\b
+    target: files
+    reason: Avoid manager-centered playback design
+  - pattern: \b\w*Helper\b
+    target: files
+    reason: Avoid helper-centered playlist or playback logic
+  max_changed_files: 8
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: |
+  Product-style app skeleton task. Tests prescribe behavior and public API, not
+  the object model. A strong EO solution should discover behavior-rich objects
+  for tracks, catalogs, listeners, playlists, devices, accounts, and sessions.
+judge:
+  categories: [scope_control, eo_adherence, communication]
+  criteria:
+  - Score EO application design, not generic clean code. Passing tests is necessary
+    but not enough.
+  - Reward behavior-rich collaborating objects for track visibility, playlist
+    duration, device cache checks, account eligibility, and playback session state.
+  - Penalize service/manager/helper-centered orchestration, passive data bags,
+    primitive obsession, getter/setter domain modeling, and procedural scripts.
+  - Reward a compact public API with internal object collaboration and no persistence
+    or UI overbuild.
+  - Do not require specific class names; judge ownership and collaboration.
+sets: [generated, eo_greenfield, eo_app_skeleton, eo_app_skeleton_tuning]
