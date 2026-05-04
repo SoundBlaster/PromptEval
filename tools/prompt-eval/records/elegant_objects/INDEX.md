@@ -5,3 +5,4 @@
 | [20260504-053625-329688-9c3f76be](20260504-053625-329688-9c3f76be.md) | EO app skeleton holdout run 1, Spark fast | eo_refactor.md, baseline.md | eo_refactor.md=78.7, baseline.md=78.0 |
 | [20260504-054415-289840-0741dafe](20260504-054415-289840-0741dafe.md) | EO app skeleton holdout run 3, Spark fast | eo_refactor.md, baseline.md | eo_refactor.md=87.0, baseline.md=79.3 |
 | [20260504-054022-327772-99c8e2de](20260504-054022-327772-99c8e2de.md) | EO app skeleton holdout run 2, Spark fast | eo_refactor.md, baseline.md | eo_refactor.md=84.3, baseline.md=74.0 |
+| [20260504-064158-857069-2840cd42](20260504-064158-857069-2840cd42.md) | EO app skeleton full run, top previous prompt, Spark fast | eo_refactor.md | eo_refactor.md=89.1 |
