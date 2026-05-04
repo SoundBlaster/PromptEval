@@ -35,6 +35,15 @@ def _cell(value) -> str:
     return str(value).replace("\n", "<br>").replace("|", "\\|")
 
 
+def _binary_eval_summary(result: CaseRunResult) -> str:
+    if not result.judge or not result.judge.binary_evals:
+        return ""
+    failed = [item for item in result.judge.binary_evals if not item.passed]
+    if not failed:
+        return "all passed"
+    return "; ".join(f"{item.id}: {item.evidence or 'failed'}" for item in failed)
+
+
 def write_report(run_dir: Path, suite: str, results: list[CaseRunResult]) -> Path:
     md = ["# Prompt Eval Report", "", f"Suite: {suite}", f"Run: {run_dir.name}", ""]
     category_keys = _category_keys(results)
@@ -59,11 +68,11 @@ def write_report(run_dir: Path, suite: str, results: list[CaseRunResult]) -> Pat
     for r in results: by_case[r.case_id].append(r)
     for case, rs in by_case.items():
         case_sets = ", ".join(rs[0].case_sets) if rs and rs[0].case_sets else "uncategorized"
-        md += ["", f"## {case}", "", f"Case set: `{case_sets}`", "", "| Prompt | Score | Result | Failure tags | Judge |", "|---|---:|---|---|---|"]
+        md += ["", f"## {case}", "", f"Case set: `{case_sets}`", "", "| Prompt | Score | Result | Failure tags | Judge | Judge evals |", "|---|---:|---|---|---|---|"]
         for r in rs:
             ok = "pass" if all(c.passed for c in r.checks) else "fail"
             judge = r.judge.summary if r.judge else ""
-            md.append(f"| {_cell(Path(r.prompt).name)} | {r.score.total} | {_cell(ok)} | {_cell(', '.join(r.score.failure_tags))} | {_cell(judge)} |")
+            md.append(f"| {_cell(Path(r.prompt).name)} | {r.score.total} | {_cell(ok)} | {_cell(', '.join(r.score.failure_tags))} | {_cell(judge)} | {_cell(_binary_eval_summary(r))} |")
             md.append(f"- Diff: `{r.diff_path}`; Transcript: `{r.transcript_path}`")
     out = run_dir / "report.md"
     out.write_text("\n".join(md))

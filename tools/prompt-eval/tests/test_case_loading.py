@@ -14,6 +14,10 @@ def test_elegant_objects_suite_includes_medium_fixture_without_task_leakage():
     fixtures = {case.fixture for case in cases}
     assert "python_subscription_billing" in fixtures
     assert all("EO style" not in case.task for case in cases)
+    bookstore = next(case for case in cases if case.id == "eo_app_skeleton_bookstore")
+    assert bookstore.judge
+    assert [item.id for item in bookstore.judge.binary_evals] == ["ownership", "local_api_scope"]
+    assert bookstore.judge.binary_evals[0].category == "eo_adherence"
 
 def test_elegant_objects_suite_declares_tuning_and_validation_sets():
     root = Path(__file__).resolve().parents[1]

@@ -28,9 +28,18 @@ class CaseChecks:
     max_changed_files: int | None = None
 
 @dataclass
+class JudgeBinaryEval:
+    id: str
+    question: str
+    pass_condition: str = ""
+    fail_condition: str = ""
+    category: str = ""
+
+@dataclass
 class CaseJudge:
     criteria: list[str] = field(default_factory=list)
     categories: list[str] = field(default_factory=list)
+    binary_evals: list[JudgeBinaryEval] = field(default_factory=list)
 
 @dataclass
 class EvalCase:

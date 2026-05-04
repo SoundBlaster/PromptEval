@@ -27,7 +27,12 @@ def test_record_run_writes_compact_markdown_json_and_index(tmp_path):
             "case_id": "case_a",
             "case_sets": ["holdout"],
             "score": {"total": 70, "failure_tags": ["procedural"]},
-            "judge": {"summary": "too procedural"},
+            "judge": {
+                "summary": "too procedural",
+                "binary_evals": [
+                    {"id": "ownership", "passed": False, "evidence": "Behavior still lives in helper functions."}
+                ],
+            },
         },
         {
             "suite": "elegant_objects",
@@ -35,7 +40,12 @@ def test_record_run_writes_compact_markdown_json_and_index(tmp_path):
             "case_id": "case_a",
             "case_sets": ["holdout"],
             "score": {"total": 90, "failure_tags": []},
-            "judge": {"summary": "object behavior"},
+            "judge": {
+                "summary": "object behavior",
+                "binary_evals": [
+                    {"id": "ownership", "passed": True, "evidence": "Behavior stays inside domain objects."}
+                ],
+            },
         },
     ]
     (run / "results.jsonl").write_text("\n".join(json.dumps(row) for row in rows))
@@ -53,10 +63,13 @@ def test_record_run_writes_compact_markdown_json_and_index(tmp_path):
     assert "Strong cases (>=90): case_a." in md
     assert "Weak cases (<85): case_a (70)." in md
     assert "Failure tags: procedural x1." in md
+    assert "Judge binary eval failures: ownership x1." in md
     assert "too procedural" in md
+    assert "ownership: Behavior still lives in helper functions." in md
     payload = json.loads((path.with_suffix(".json")).read_text())
     assert payload["prompts"][0]["prompt"] == "eo_refactor.md"
     assert payload["analysis"][0]["prompt"] == "eo_refactor.md"
     assert payload["analysis"][1]["prompt"] == "baseline.md"
+    assert payload["cases"][0]["judge_binary_evals"]
     index = path.parent / "INDEX.md"
     assert "[20260504-sample](20260504-sample.md)" in index.read_text()

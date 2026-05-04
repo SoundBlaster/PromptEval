@@ -83,6 +83,7 @@ peval run --suite elegant_objects --prompts prompts/elegant_objects/eo_lite.md -
 ```
 
 The `subagent` judge runs a separate Codex CLI process against the task, diff, deterministic check summary, rubric, and case-specific judge criteria. Judge scores can only lower matching rubric categories; they do not increase deterministic scores.
+When a case declares `judge.binary_evals`, the judge also returns explicit yes/no semantic checks with evidence. These are recorded in `result.json`, surfaced in `report.md`, and summarized by `peval record` so prompt mutations can target recurring semantic failures instead of only aggregate score drops.
 
 ## Add a prompt
 Drop a new markdown file under `prompts/<suite>/` and pass it via `--prompts`.
@@ -93,6 +94,7 @@ Create a case YAML under `evals/<suite>/cases/` and include it in `suite.yaml`.
 Each case points at a fixture, a task, deterministic checks, and a rubric.
 Represent shell commands as argv lists, for example `["python", "-m", "pytest", "-q"]`.
 Prefer adding new prompt-tuning cases under a `tuning` set and new held-out checks under `validation`.
+For semantic judging, prefer a small `judge.binary_evals` list of concrete yes/no checks with `id`, `question`, `pass_condition`, `fail_condition`, and optional `category`.
 
 ## Generate a draft eval case
 Use Codex to turn a text task description into a reviewable draft fixture:
@@ -119,6 +121,8 @@ Each run includes:
 - `metadata.json`
 - per-case `result.json`, `diff.patch`, `trace.jsonl`
 - `report.md` prompt comparison and per-case table
+
+Compact records under `records/<suite>/` also summarize recurring failed binary judge evals when present.
 
 ## Limitations
 - OpenAI judge currently stubbed; use `--judge subagent` for local Codex-based judging.

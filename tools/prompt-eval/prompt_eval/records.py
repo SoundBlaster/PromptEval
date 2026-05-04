@@ -71,6 +71,7 @@ def _case_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "case_sets": row.get("case_sets", []),
             "failure_tags": row["score"].get("failure_tags", []),
             "judge": (row.get("judge") or {}).get("summary", ""),
+            "judge_binary_evals": (row.get("judge") or {}).get("binary_evals", []),
         }
         for row in rows
     ]
@@ -99,6 +100,15 @@ def _failure_tags(rows: list[dict[str, Any]]) -> Counter:
     return tags
 
 
+def _binary_eval_failures(rows: list[dict[str, Any]]) -> Counter:
+    failures = Counter()
+    for row in rows:
+        for item in (row.get("judge") or {}).get("binary_evals", []):
+            if not item.get("passed", True):
+                failures[str(item.get("id", "unknown_eval"))] += 1
+    return failures
+
+
 def _prompt_analysis(rows: list[dict[str, Any]], summaries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
@@ -117,6 +127,7 @@ def _prompt_analysis(rows: list[dict[str, Any]], summaries: list[dict[str, Any]]
             if row["score"]["total"] < 85
         ]
         tags = _failure_tags(prompt_rows)
+        failed_evals = _binary_eval_failures(prompt_rows)
         wins, shared = _shared_case_wins(prompt, rows)
 
         if summary["average"] == best_average and len(summaries) > 1:
@@ -127,12 +138,17 @@ def _prompt_analysis(rows: list[dict[str, Any]], summaries: list[dict[str, Any]]
             strengths.append(f"Strong cases (>=90): {', '.join(high_cases[:5])}.")
         if not tags:
             strengths.append("No failure tags recorded.")
+        if not failed_evals:
+            strengths.append("No judge binary eval failures recorded.")
 
         if low_cases:
             weaknesses.append(f"Weak cases (<85): {', '.join(low_cases[:5])}.")
         if tags:
             common = ", ".join(f"{tag} x{count}" for tag, count in tags.most_common(5))
             weaknesses.append(f"Failure tags: {common}.")
+        if failed_evals:
+            common = ", ".join(f"{tag} x{count}" for tag, count in failed_evals.most_common(5))
+            weaknesses.append(f"Judge binary eval failures: {common}.")
         if not weaknesses:
             weaknesses.append("No clear weaknesses surfaced by scores or failure tags.")
 
@@ -196,11 +212,23 @@ def _markdown(record: dict[str, Any]) -> str:
         strengths = "<br>".join(item["strengths"]).replace("|", "\\|")
         weaknesses = "<br>".join(item["weaknesses"]).replace("|", "\\|")
         lines.append(f"| {item['prompt']} | {strengths} | {weaknesses} |")
-    lines += ["", "## Case Results", "", "| Case | Prompt | Score | Failure tags | Judge |", "|---|---|---:|---|---|"]
+    lines += ["", "## Case Results", "", "| Case | Prompt | Score | Failure tags | Judge | Judge evals |", "|---|---|---:|---|---|---|"]
     for case in record["cases"]:
         tags = ", ".join(case["failure_tags"])
         judge = str(case["judge"]).replace("\n", "<br>").replace("|", "\\|")
-        lines.append(f"| {case['case_id']} | {case['prompt']} | {case['score']} | {tags} | {judge} |")
+        binary_evals = case.get("judge_binary_evals") or []
+        if binary_evals:
+            failed = [item for item in binary_evals if not item.get("passed", True)]
+            if not failed:
+                evals = "all passed"
+            else:
+                evals = "; ".join(
+                    f"{item.get('id', 'unknown')}: {str(item.get('evidence', 'failed'))}"
+                    for item in failed
+                ).replace("|", "\\|")
+        else:
+            evals = ""
+        lines.append(f"| {case['case_id']} | {case['prompt']} | {case['score']} | {tags} | {judge} | {evals} |")
     lines.append("")
     return "\n".join(lines)
 

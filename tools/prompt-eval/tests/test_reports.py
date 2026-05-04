@@ -2,7 +2,7 @@ from pathlib import Path
 from prompt_eval.models import CaseRunResult, ScoreBreakdown
 from prompt_eval.reports import write_report
 from prompt_eval.runner import run_suite
-from prompt_eval.judges.base import JudgeResult
+from prompt_eval.judges.base import JudgeBinaryEvalResult, JudgeResult
 
 def test_report_generation():
     root = Path(__file__).resolve().parents[1]
@@ -61,9 +61,15 @@ def test_report_includes_judge_summary(tmp_path):
         checks=[],
         diff_path="diff.patch",
         transcript_path="trace.jsonl",
-        judge=JudgeResult(categories={"design": 10}, failure_tags=[], summary="object ownership | acceptable\nsecond line"),
+        judge=JudgeResult(
+            categories={"design": 10},
+            failure_tags=[],
+            summary="object ownership | acceptable\nsecond line",
+            binary_evals=[JudgeBinaryEvalResult(id="ownership", passed=False, evidence="Behavior stays procedural.")],
+        ),
     )
     write_report(tmp_path, "generic", [result])
     report = (tmp_path / "report.md").read_text()
-    assert "| Prompt | Score | Result | Failure tags | Judge |" in report
+    assert "| Prompt | Score | Result | Failure tags | Judge | Judge evals |" in report
     assert "object ownership \\| acceptable<br>second line" in report
+    assert "ownership: Behavior stays procedural." in report
