@@ -5,6 +5,7 @@ from pathlib import Path
 from collections import defaultdict
 from .config import suite_case_sets
 from .case_generator import DEFAULT_GENERATOR_MODEL, DEFAULT_GENERATOR_MODEL_MODE, generate_case
+from .agents.codex_agent import SUPPORTED_MODEL_MODES
 from .records import record_run
 from .runner import run_suite
 
@@ -56,12 +57,12 @@ def main() -> None:
     runp.add_argument("--prompts", nargs="+", required=True)
     runp.add_argument("--agent", default="noop", choices=["fixture-good", "fixture-bad", "codex", "noop"])
     runp.add_argument("--model", help="model name for agents that support model selection")
-    runp.add_argument("--model-mode", choices=["fast"], help="model execution mode for agents that support it")
+    runp.add_argument("--model-mode", choices=SUPPORTED_MODEL_MODES, help="model execution mode for agents that support it")
     runp.add_argument("--codex-bin", help="path or command name for the Codex CLI binary")
     runp.add_argument("--case-set", action="append", help="run only cases tagged with this set; repeat to include multiple sets")
     runp.add_argument("--judge", default="none", choices=["none", "mock", "subagent"], help="optional LLM-as-judge layer")
     runp.add_argument("--judge-model", help="model name for the LLM judge")
-    runp.add_argument("--judge-model-mode", choices=["fast"], help="model execution mode for the LLM judge")
+    runp.add_argument("--judge-model-mode", choices=SUPPORTED_MODEL_MODES, help="model execution mode for the LLM judge")
     runp.add_argument("--judge-codex-bin", help="path or command name for the Codex CLI used by the LLM judge")
     runp.add_argument("--record", action="store_true", help="write a compact versioned record for this run")
     runp.add_argument("--record-title", help="human-readable title for --record")
@@ -76,7 +77,7 @@ def main() -> None:
     gen.add_argument("--case-id", help="stable snake_case case id; defaults to a slug from the description")
     gen.add_argument("--output-root", default="generated-cases", help="directory where <case-id>/ will be written")
     gen.add_argument("--model", default=DEFAULT_GENERATOR_MODEL, help="Codex model for fixture generation")
-    gen.add_argument("--model-mode", default=DEFAULT_GENERATOR_MODEL_MODE, choices=["fast"], help="Codex model execution mode")
+    gen.add_argument("--model-mode", default=DEFAULT_GENERATOR_MODEL_MODE, choices=SUPPORTED_MODEL_MODES, help="Codex model execution mode")
     gen.add_argument("--codex-bin", help="path or command name for the Codex CLI binary")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]

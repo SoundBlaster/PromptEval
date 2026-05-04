@@ -29,6 +29,7 @@ def test_codex_unsupported_model_mode_graceful(tmp_path, monkeypatch):
     assert not r.ok
     assert "unsupported model mode 'turbo'" in r.stderr
     assert "fast" in r.stderr
+    assert "medium" in r.stderr
 
 def test_codex_model_flag(tmp_path, monkeypatch):
     calls = []
@@ -73,6 +74,30 @@ def test_codex_fast_model_mode(tmp_path, monkeypatch):
         "gpt-5.3-codex-spark",
         "--config",
         'model_reasoning_effort="low"',
+        "task",
+    ]
+
+def test_codex_medium_model_mode(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(shutil, "which", lambda _: "/usr/bin/codex")
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    r = run_codex(tmp_path, "task", "prompt", model="gpt-5.5", model_mode="medium")
+    assert r.ok
+    assert calls[0] == [
+        "codex",
+        "exec",
+        "--ignore-user-config",
+        "--json",
+        "--full-auto",
+        "--model",
+        "gpt-5.5",
+        "--config",
+        'model_reasoning_effort="medium"',
         "task",
     ]
 

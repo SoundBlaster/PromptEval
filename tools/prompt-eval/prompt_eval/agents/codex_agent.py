@@ -6,7 +6,9 @@ from .base import AgentRun
 
 MODEL_MODE_CONFIG = {
     "fast": 'model_reasoning_effort="low"',
+    "medium": 'model_reasoning_effort="medium"',
 }
+SUPPORTED_MODEL_MODES = tuple(MODEL_MODE_CONFIG)
 
 CODEX_CONFIG = """approval_policy = "never"
 sandbox_mode = "workspace-write"

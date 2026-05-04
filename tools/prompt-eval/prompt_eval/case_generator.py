@@ -14,7 +14,7 @@ from .config import load_case
 
 
 DEFAULT_GENERATOR_MODEL = "gpt-5.3-codex-spark"
-DEFAULT_GENERATOR_MODEL_MODE = "fast"
+DEFAULT_GENERATOR_MODEL_MODE = None
 
 GENERATOR_PROMPT = """You generate PromptEval coding tasks.
 
@@ -207,7 +207,7 @@ def generate_case(
     case_id: str | None = None,
     output_root: Path | None = None,
     model: str = DEFAULT_GENERATOR_MODEL,
-    model_mode: str = DEFAULT_GENERATOR_MODEL_MODE,
+    model_mode: str | None = DEFAULT_GENERATOR_MODEL_MODE,
     codex_bin: str | None = None,
 ) -> GeneratedCase:
     selected_id = _slug(case_id or description.splitlines()[0])
