@@ -195,7 +195,15 @@ def _validate_case_dir(workdir: Path, output_dir: Path, case_id: str) -> Generat
         raise ValueError(f"case.yaml fixture must be {case_id!r}, got {raw.get('fixture')!r}")
     _normalize_case_yaml(case_yaml)
     _validate_regex_checks(case_yaml)
-    return GeneratedCase(case_id=case_id, workdir=workdir, output_dir=output_dir, case_yaml=case_yaml, before_dir=before_dir, good_dir=good_dir, bad_dir=bad_dir)
+    return GeneratedCase(
+        case_id=case_id,
+        workdir=workdir,
+        output_dir=output_dir,
+        case_yaml=case_yaml,
+        before_dir=before_dir,
+        good_dir=good_dir,
+        bad_dir=bad_dir,
+    )
 
 
 def _validate_case(root: Path, case_id: str) -> GeneratedCase:

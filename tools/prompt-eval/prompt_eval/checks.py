@@ -1,7 +1,9 @@
 from __future__ import annotations
 from pathlib import Path
 import fnmatch
-import re, shlex, subprocess
+import re
+import shlex
+import subprocess
 from .models import EvalCase, CheckResult
 
 
@@ -13,7 +15,7 @@ def git_diff(sandbox: Path) -> str:
 
 
 def changed_files_count(diff: str) -> int:
-    return len([l for l in diff.splitlines() if l.startswith("diff --git")])
+    return len([line for line in diff.splitlines() if line.startswith("diff --git")])
 
 
 def command_argv(cmd: str | list[str]) -> list[str]:

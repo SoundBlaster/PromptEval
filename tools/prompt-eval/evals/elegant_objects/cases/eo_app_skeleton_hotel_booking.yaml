@@ -53,4 +53,15 @@ judge:
   - Reward a compact public API with internal object collaboration and no persistence
     or web framework overbuild.
   - Do not require specific class names; judge ownership and collaboration.
+  binary_evals:
+  - id: ownership
+    category: eo_adherence
+    question: Does the patch keep pricing, availability, and reservation behavior inside focused domain objects rather than helper-style orchestration or passive data carriers?
+    pass_condition: Core hotel-booking behavior is owned by collaborating domain objects with little helper-style coordination.
+    fail_condition: Pricing, availability, or reservation rules are mostly coordinated through helpers, manager objects, or passive data bags.
+  - id: local_api_scope
+    category: scope_control
+    question: Does the patch keep a compact public API while avoiding persistence, framework setup, or unrelated booking-platform overbuild?
+    pass_condition: The change stays inside the small booking skeleton and public API required by tests.
+    fail_condition: The patch adds unrelated infrastructure, broad layering, or unnecessary public surface beyond the required booking API.
 sets: [generated, eo_greenfield, eo_app_skeleton, eo_app_skeleton_holdout]

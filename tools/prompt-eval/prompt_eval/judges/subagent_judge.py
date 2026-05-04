@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 
 from .base import JudgeResult
+from .base import JudgeBinaryEvalResult
 from ..agents.codex_agent import MODEL_MODE_CONFIG, codex_command, create_codex_home
 from ..models import EvalCase
 
@@ -37,7 +38,45 @@ def _json_payload(text: str) -> dict:
     return json.loads(stripped[start : end + 1])
 
 
-def _parse(stdout: str, rubric: dict[str, int], allowed_categories: list[str] | None = None) -> JudgeResult:
+def _binary_eval_payload(case: EvalCase, payload: dict) -> list[JudgeBinaryEvalResult]:
+    expected = {item.id: item for item in (case.judge.binary_evals if case.judge else [])}
+    returned = {}
+    for item in payload.get("binary_evals", []) or []:
+        if not isinstance(item, dict):
+            continue
+        eval_id = str(item.get("id", ""))
+        if eval_id not in expected:
+            continue
+        spec = expected[eval_id]
+        passed_raw = item.get("passed")
+        passed = passed_raw is True
+        evidence = str(item.get("evidence") or "")
+        if not isinstance(passed_raw, bool):
+            evidence = f"Invalid `passed` value for judge binary eval: expected JSON boolean, got {passed_raw!r}."
+        returned[eval_id] = JudgeBinaryEvalResult(
+            id=eval_id,
+            passed=passed,
+            category=str(item.get("category") or spec.category or ""),
+            question=str(item.get("question") or spec.question),
+            evidence=evidence,
+        )
+    return [
+        returned.get(
+            eval_id,
+            JudgeBinaryEvalResult(
+                id=eval_id,
+                passed=False,
+                category=str(spec.category or ""),
+                question=str(spec.question),
+                evidence="Judge response omitted this configured binary eval.",
+            ),
+        )
+        for eval_id, spec in expected.items()
+    ]
+
+
+def _parse(stdout: str, case: EvalCase, allowed_categories: list[str] | None = None) -> JudgeResult:
+    rubric = case.rubric
     allowed = set(rubric if allowed_categories is None else allowed_categories)
     errors = []
     for text in list(reversed(_message_texts(stdout))) + [stdout]:
@@ -53,6 +92,7 @@ def _parse(stdout: str, rubric: dict[str, int], allowed_categories: list[str] | 
                 categories=categories,
                 failure_tags=[str(tag) for tag in payload.get("failure_tags", [])],
                 summary=str(payload.get("summary", "")),
+                binary_evals=_binary_eval_payload(case, payload),
                 raw=text,
             )
         except (TypeError, ValueError, json.JSONDecodeError) as exc:
@@ -70,9 +110,29 @@ def _judge_categories(case: EvalCase) -> list[str]:
 
 def _prompt(case: EvalCase, prompt_text: str, diff: str, deterministic_summary: str) -> str:
     criteria = "\n".join(f"- {item}" for item in (case.judge.criteria if case.judge else []))
+    binary_evals = case.judge.binary_evals if case.judge else []
+    binary_eval_instructions = "\n".join(
+        f"- `{item.id}` ({item.category or 'uncategorized'}): {item.question}\n"
+        f"  Pass: {item.pass_condition or 'Satisfies the intended design signal.'}\n"
+        f"  Fail: {item.fail_condition or 'Does not satisfy the intended design signal.'}"
+        for item in binary_evals
+    )
     rubric = json.dumps(case.rubric, indent=2, sort_keys=True)
     judge_categories = _judge_categories(case)
     example_categories = json.dumps({key: case.rubric[key] for key in judge_categories}, sort_keys=True)
+    example_binary = json.dumps(
+        [
+            {
+                "id": item.id,
+                "passed": True,
+                "category": item.category or "",
+                "question": item.question,
+                "evidence": "short concrete reason",
+            }
+            for item in binary_evals
+        ],
+        indent=2,
+    )
     allowed_categories = ", ".join(f"`{key}`" for key in judge_categories)
     return f"""You are a strict LLM-as-judge for a coding-agent prompt evaluation.
 
@@ -81,6 +141,7 @@ Do not edit files. Judge only the submitted patch.
 Return exactly one JSON object with this shape:
 {{
   "categories": {example_categories},
+  "binary_evals": {example_binary if binary_evals else "[]"},
   "failure_tags": ["short_tag_if_any"],
   "summary": "one short sentence"
 }}
@@ -95,6 +156,9 @@ Task:
 
 Semantic criteria:
 {criteria or "- Judge whether the patch follows the stated prompt without overfitting or broad unrelated refactoring."}
+
+Binary evals:
+{binary_eval_instructions or "- None. Omit or return an empty binary_evals list."}
 
 Deterministic check summary:
 {deterministic_summary}
@@ -139,7 +203,7 @@ def judge_subagent(
         if proc.returncode != 0:
             detail = (proc.stdout + proc.stderr)[-800:]
             return JudgeResult(categories={}, failure_tags=["judge_failed"], summary=detail, raw=proc.stdout)
-        return _parse(proc.stdout, case.rubric, _judge_categories(case))
+        return _parse(proc.stdout, case, _judge_categories(case))
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
         shutil.rmtree(codex_home, ignore_errors=True)

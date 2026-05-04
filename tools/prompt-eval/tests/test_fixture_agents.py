@@ -3,9 +3,11 @@ from prompt_eval.runner import run_suite
 from prompt_eval.agents.base import AgentRun
 import json
 
+
 def avg(run_dir):
-    rows=[json.loads(l) for l in (run_dir/"results.jsonl").read_text().splitlines() if l.strip()]
-    return sum(r["score"]["total"] for r in rows)/len(rows)
+    rows = [json.loads(line) for line in (run_dir / "results.jsonl").read_text().splitlines() if line.strip()]
+    return sum(r["score"]["total"] for r in rows) / len(rows)
+
 
 def test_good_beats_bad():
     root = Path(__file__).resolve().parents[1]
@@ -13,6 +15,7 @@ def test_good_beats_bad():
     good = run_suite(root, "elegant_objects", p, "fixture-good")
     bad = run_suite(root, "elegant_objects", p, "fixture-bad")
     assert avg(good) > avg(bad)
+
 
 def test_codex_agent_sees_only_before_fixture(monkeypatch):
     root = Path(__file__).resolve().parents[1]
@@ -41,6 +44,11 @@ def test_codex_agent_sees_only_before_fixture(monkeypatch):
     assert any("library_app/app.py" in item["files"] for item in seen)
     assert any("hotel_booking/app.py" in item["files"] for item in seen)
     assert any("ticketing/app.py" in item["files"] for item in seen)
+    bookstore_task = next(item["task"] for item in seen if "bookstore/app.py" in item["files"])
+    assert "Acceptance criteria visible to the coding agent:" in bookstore_task
+    assert "Run `python -m pytest -q`" in bookstore_task
+    assert "Forbidden pattern `\\b\\w*Service\\b`" in bookstore_task
+    assert "ownership category=eo_adherence" in bookstore_task
     assert all("Good solution" not in item["task"] for item in seen)
     assert all("BookstoreService" not in item["task"] for item in seen)
     assert all("LibraryManager" not in item["task"] for item in seen)

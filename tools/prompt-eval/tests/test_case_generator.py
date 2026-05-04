@@ -82,7 +82,10 @@ def test_generate_case_uses_codex_and_copies_output(tmp_path, monkeypatch):
     assert generated.output_dir == tmp_path / "discount_policy"
     assert (generated.output_dir / "before" / "test_sample.py").exists()
     case_yaml = yaml.safe_load((generated.output_dir / "case.yaml").read_text())
-    assert case_yaml["checks"]["commands"] == [["python", "-m", "pytest", "-q"], ["python", "-m", "compileall", "-q", "."]]
+    assert case_yaml["checks"]["commands"] == [
+        ["python", "-m", "pytest", "-q"],
+        ["python", "-m", "compileall", "-q", "."],
+    ]
     assert case_yaml["checks"]["forbidden_regex"][0]["pattern"] == "Helper"
     assert case_yaml["notes"] == "Generated draft."
     assert case_yaml["judge"]["criteria"] == ["Keep behavior inside focused domain objects."]
@@ -103,7 +106,10 @@ def test_generate_case_detects_nested_python_fixture(tmp_path, monkeypatch):
     generated = case_generator.generate_case("Nested Python case", case_id="nested_python", output_root=tmp_path)
     case_yaml = yaml.safe_load((generated.output_dir / "case.yaml").read_text())
 
-    assert case_yaml["checks"]["commands"] == [["python", "-m", "pytest", "-q"], ["python", "-m", "compileall", "-q", "."]]
+    assert case_yaml["checks"]["commands"] == [
+        ["python", "-m", "pytest", "-q"],
+        ["python", "-m", "compileall", "-q", "."],
+    ]
     assert calls == [("gpt-5.3-codex-spark", None, None)]
 
 

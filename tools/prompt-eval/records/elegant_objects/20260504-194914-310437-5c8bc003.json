@@ -1,0 +1,138 @@
+{
+  "analysis": [
+    {
+      "prompt": "eo_refactor.md",
+      "strengths": [
+        "Strong cases (>=90): eo_app_skeleton_hotel_booking, eo_app_skeleton_clinic_appointments, eo_app_skeleton_ticketing_refunds.",
+        "No failure tags recorded.",
+        "No judge binary eval failures recorded."
+      ],
+      "weaknesses": [
+        "No clear weaknesses surfaced by scores or failure tags."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "eo_app_skeleton_hotel_booking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "Patch refactors to a compact domain skeleton with behavior-rich objects and payment-gated reservation, while preserving required APIs and staying tightly scoped.",
+      "judge_binary_evals": [
+        {
+          "category": "eo_adherence",
+          "evidence": "Pricing, discount, availability checks, and quote composition are implemented on `RoomType`, `Guest`, `Availability`, and `Stay`; orchestration in `quote_stay`/`reserve_stay` is thin and delegates behavior to these objects.",
+          "id": "ownership",
+          "passed": true,
+          "question": "Does the patch keep pricing, availability, and reservation behavior inside focused domain objects rather than helper-style orchestration or passive data carriers?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Only `hotel_booking/app.py` was changed, tests are preserved with `quote_stay`/`reserve_stay`, and no persistence, framework, or payment integration was introduced.",
+          "id": "local_api_scope",
+          "passed": true,
+          "question": "Does the patch keep a compact public API while avoiding persistence, framework setup, or unrelated booking-platform overbuild?"
+        }
+      ],
+      "prompt": "eo_refactor.md",
+      "score": 93
+    },
+    {
+      "case_id": "eo_app_skeleton_clinic_appointments",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "The patch is a well-scoped EO-oriented refactor that keeps core behavior in domain objects and preserves the required API/contracts cleanly.",
+      "judge_binary_evals": [
+        {
+          "category": "eo_adherence",
+          "evidence": "Scheduling/eligibility/check-in are implemented as methods on `VisitRequest`, `Doctor`, `Clinic`, and `Appointment` (`denial_for`, `assign`, `reserve`, `check`) with only lightweight boundary parsing in `from_boundary` factories.",
+          "id": "ownership",
+          "passed": true,
+          "question": "Does the patch keep scheduling, eligibility, and check-in behavior inside focused domain objects rather than helper-style orchestration or passive data carriers?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Only required public functions remain (`schedule_visits`, `check_in`) and the patch adds only domain value objects in a single file without persistence, UI, billing, or messaging layers.",
+          "id": "local_api_scope",
+          "passed": true,
+          "question": "Does the patch keep a compact public API while avoiding persistence, messaging, or unrelated appointment-platform overbuild?"
+        }
+      ],
+      "prompt": "eo_refactor.md",
+      "score": 97
+    },
+    {
+      "case_id": "eo_app_skeleton_ticketing_refunds",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "The patch refactors to a compact domain-focused skeleton with behavior concentrated in small value objects and preserves required public pricing/refund APIs.",
+      "judge_binary_evals": [
+        {
+          "category": "eo_adherence",
+          "evidence": "Pricing/shortage logic is on `Event`, request aggregation on `TicketRequest`, discount in `Buyer`, and refund policy/state transitions in `RefundPolicy` + `TicketLedger`; top-level functions mostly convert boundaries and delegate.",
+          "id": "ownership",
+          "passed": true,
+          "question": "Does the patch keep pricing, capacity, and refund behavior inside focused domain objects rather than helper-style orchestration or passive data carriers?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Only `price_tickets` and `refund_tickets` remain as public entry points, with no persistence/UI/payment/delivery artifacts added.",
+          "id": "local_api_scope",
+          "passed": true,
+          "question": "Does the patch keep a compact public API while avoiding persistence, delivery, or unrelated ticketing-platform overbuild?"
+        }
+      ],
+      "prompt": "eo_refactor.md",
+      "score": 97
+    }
+  ],
+  "metadata": {
+    "agent": "fixture-good",
+    "case_sets": [
+      "eo_app_skeleton_holdout"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "fast",
+    "model": null,
+    "model_mode": null,
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/elegant_objects/eo_refactor.md"
+    ],
+    "run_id": "20260504-194914-310437-5c8bc003",
+    "suite": "elegant_objects"
+  },
+  "prompts": [
+    {
+      "average": 95.7,
+      "cases": 3,
+      "prompt": "eo_refactor.md",
+      "sets": {
+        "eo_app_skeleton": 95.7,
+        "eo_app_skeleton_holdout": 95.7,
+        "eo_greenfield": 95.7,
+        "generated": 95.7
+      }
+    }
+  ],
+  "run_id": "20260504-194914-310437-5c8bc003",
+  "suite": "elegant_objects",
+  "title": "EO app skeleton holdout fixture-good with binary judge evals"
+}
