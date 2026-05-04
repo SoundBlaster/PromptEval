@@ -20,6 +20,19 @@ Good fixture should score higher than bad fixture. Reports are written to `runs/
 The included `elegant_objects` suite mixes a compact shop fixture with a larger subscription billing fixture that has nearby refund code as a scope-control distractor.
 It also includes `procedural_helper.md` as an explicit negative-control prompt for Codex runs.
 
+## Record evaluation results
+Raw run artifacts under `runs/` are intentionally local and gitignored because they include full diffs and traces. Preserve important evaluation outcomes as compact records:
+```bash
+peval record --run runs/<id> --title "EO app skeleton holdout, Spark fast"
+```
+
+Or record automatically after a run:
+```bash
+peval run --suite elegant_objects --case-set eo_app_skeleton_holdout --prompts prompts/elegant_objects/baseline.md prompts/elegant_objects/eo_refactor.md --agent codex --record --record-title "EO app skeleton holdout"
+```
+
+Records are written to `records/<suite>/` as Markdown plus JSON. Commit these summaries when the run result is part of prompt research; keep raw `runs/` artifacts local unless a diff or trace is needed for debugging a specific failure.
+
 ## Avoid prompt overfitting
 Suites can tag cases into sets. The included `elegant_objects` suite uses:
 - `tuning`: small known cases for fast prompt editing.
@@ -102,6 +115,7 @@ Optional LLM judging can be layered on for semantic checks and is recorded in `r
 ## Reports
 Each run includes:
 - `results.jsonl`
+- `metadata.json`
 - per-case `result.json`, `diff.patch`, `trace.jsonl`
 - `report.md` prompt comparison and per-case table
 

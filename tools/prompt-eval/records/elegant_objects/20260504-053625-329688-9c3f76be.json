@@ -1,0 +1,126 @@
+{
+  "cases": [
+    {
+      "case_id": "eo_app_skeleton_hotel_booking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "inventory_not_charged_per_unique_stay_night"
+      ],
+      "judge": "The patch is well-scoped and keeps the required `quote_stay`/`reserve_stay` APIs, but its booking semantics are still procedural and fails a key invariant by mutating inventory per raw night entry rather than robust stay-night semantics.",
+      "prompt": "baseline.md",
+      "score": 77
+    },
+    {
+      "case_id": "eo_app_skeleton_clinic_appointments",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "dict_centric_service_style"
+      ],
+      "judge": "The patch implements core scheduling and late-fee checks, but it remains orchestration-by-dicts with helper-driven procedural flow and misses deeper domain collaboration (notably no internal domain objects and no appointment-window provenance from scheduling).",
+      "prompt": "baseline.md",
+      "score": 77
+    },
+    {
+      "case_id": "eo_app_skeleton_ticketing_refunds",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "procedural_dict_based_domain"
+      ],
+      "judge": "The patch satisfies the required APIs and core ticketing behaviors, but it stays in a procedural helper-style style with weak domain object collaboration.",
+      "prompt": "baseline.md",
+      "score": 80
+    },
+    {
+      "case_id": "eo_app_skeleton_hotel_booking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "inventory_mutation_without_authorized_payment"
+      ],
+      "judge": "The patch adds a domain-style structure with required APIs but fails the payment-gating rule by mutating room inventory across the tested flow, so the reservation behavior is not yet correct.",
+      "prompt": "eo_refactor.md",
+      "score": 76
+    },
+    {
+      "case_id": "eo_app_skeleton_clinic_appointments",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "contains_service_class",
+        "scheduling_behavior_regression"
+      ],
+      "judge": "The patch models core domain concepts and keeps the public API surface, but it violates the EO naming/proscription expectations with a `Service`-centered check-in orchestrator and still fails a core scheduling behavioral case.",
+      "prompt": "eo_refactor.md",
+      "score": 66
+    },
+    {
+      "case_id": "eo_app_skeleton_ticketing_refunds",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "unused_discount_policy"
+      ],
+      "judge": "The patch delivers the requested domain behavior in a compact way, with good object collaboration and DTO boundaries, but includes an unused object in the model and still relies on raw dictionaries for key collaborators, slightly weakening EO purity.",
+      "prompt": "eo_refactor.md",
+      "score": 94
+    }
+  ],
+  "metadata": {},
+  "prompts": [
+    {
+      "average": 78.7,
+      "cases": 3,
+      "prompt": "eo_refactor.md",
+      "sets": {
+        "eo_app_skeleton": 78.7,
+        "eo_app_skeleton_holdout": 78.7,
+        "eo_greenfield": 78.7,
+        "generated": 78.7
+      }
+    },
+    {
+      "average": 78.0,
+      "cases": 3,
+      "prompt": "baseline.md",
+      "sets": {
+        "eo_app_skeleton": 78.0,
+        "eo_app_skeleton_holdout": 78.0,
+        "eo_greenfield": 78.0,
+        "generated": 78.0
+      }
+    }
+  ],
+  "run_id": "20260504-053625-329688-9c3f76be",
+  "suite": "elegant_objects",
+  "title": "EO app skeleton holdout run 1, Spark fast"
+}

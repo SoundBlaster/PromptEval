@@ -56,6 +56,21 @@ def run_suite(
     run_dir = root / "runs" / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
     cases = load_suite(root, suite, case_sets)
+    metadata = {
+        "run_id": run_id,
+        "suite": suite,
+        "prompts": [str(path) for path in prompts],
+        "agent": agent,
+        "model": model,
+        "model_mode": model_mode,
+        "codex_bin": codex_bin,
+        "case_sets": case_sets or [],
+        "judge": judge,
+        "judge_model": judge_model,
+        "judge_model_mode": judge_model_mode,
+        "judge_codex_bin": judge_codex_bin,
+    }
+    (run_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
     results = []
     for p in prompts:
         ptxt = p.read_text()
