@@ -27,6 +27,7 @@ Suites can tag cases into sets. The included `elegant_objects` suite uses:
 - `generated`: generated EO cases promoted from draft fixtures.
 - `eo_feature_lens`: ordinary feature work where EO should only guide planning and local review.
 - `eo_refactoring`: explicit refactoring tasks where EO is the target transformation.
+- `eo_app_skeleton`: larger greenfield application skeleton tasks where product behavior is specified but the internal object model is not.
 
 Run only the prompt-authoring set while editing:
 ```bash
@@ -44,6 +45,7 @@ Avoid comparing these prompts only on the full mixed suite. Prefer mode-specific
 ```bash
 peval run --suite elegant_objects --case-set eo_feature_lens --prompts prompts/elegant_objects/baseline.md prompts/elegant_objects/eo_planner.md --agent codex
 peval run --suite elegant_objects --case-set eo_refactoring --prompts prompts/elegant_objects/baseline.md prompts/elegant_objects/eo_refactor.md --agent codex
+peval run --suite elegant_objects --case-set eo_app_skeleton --prompts prompts/elegant_objects/baseline.md prompts/elegant_objects/eo_greenfield.md --agent codex
 ```
 
 ## Codex integration (optional)

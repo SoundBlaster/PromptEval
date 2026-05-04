@@ -68,3 +68,17 @@ cases:
   sets:
   - generated
   - eo_feature_lens
+- path: eo_greenfield_quote_pricing.yaml
+  sets:
+  - generated
+  - eo_greenfield
+- path: eo_app_skeleton_bookstore.yaml
+  sets:
+  - generated
+  - eo_greenfield
+  - eo_app_skeleton
+- path: eo_app_skeleton_library.yaml
+  sets:
+  - generated
+  - eo_greenfield
+  - eo_app_skeleton

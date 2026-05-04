@@ -4,6 +4,8 @@ This task is an explicit refactoring task toward Elegant Objects.
 
 Preserve observable behavior first. Refactor in small, reviewable steps. Existing tests are characterization tests unless the task explicitly asks to change behavior. If tests are missing, add the smallest tests needed to pin current behavior before changing structure.
 
+Before choosing classes, identify domain invariants and state transitions. Model aggregate behavior explicitly, and check constraints against the relevant whole state instead of one raw input item at a time.
+
 Use EO as the refactoring target:
 - Move behavior from procedural helpers, renderers, controllers, dictionaries, and raw primitives into focused objects.
 - Prefer immutable values and explicit dependencies.

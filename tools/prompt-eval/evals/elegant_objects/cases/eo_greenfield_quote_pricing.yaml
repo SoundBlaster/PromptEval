@@ -1,0 +1,66 @@
+id: eo_greenfield_quote_pricing
+title: Implement greenfield quote pricing
+fixture: eo_greenfield_quote_pricing
+task: Build a tiny quote pricing module from scratch. Given a sequence of quote lines
+  with quantity and unit price, a whole-number percentage discount, and a fractional
+  tax rate, return the final money total rounded to cents. For example,
+  `discount_percent=10.00` means 10%, while `tax_rate=0.20` means 20%. Keep the
+  public API simple and make the internal design easy to extend when pricing rules
+  grow.
+checks:
+  commands:
+  - - python
+    - -m
+    - pytest
+    - -q
+  - - python
+    - -m
+    - compileall
+    - -q
+    - .
+  required_regex:
+  - pattern: def\s+price_quote\s*\(
+    target: files
+    paths:
+    - quote_pricing/pricing.py
+    - quote_pricing/__init__.py
+    reason: Preserve the public product API required by tests
+  forbidden_regex:
+  - pattern: \bQuoteHelper\b
+    target: files
+    reason: Greenfield design should not centralize pricing in a helper object
+  - pattern: \bquote\s*=\s*\{
+    target: files
+    reason: Boundary dictionaries should not become the internal domain model
+  - pattern: \b\w*Helper\b
+    target: files
+    reason: Avoid helper-centered design in greenfield EO code
+  max_changed_files: 8
+rubric:
+  functional_correctness: 40
+  scope_control: 20
+  eo_adherence: 25
+  verification: 10
+  communication: 5
+notes: Product-style greenfield task. Tests prescribe behavior and public API, not
+  the internal object model. The judge should distinguish EO design taste from generic
+  clean code that merely passes tests.
+judge:
+  categories:
+  - scope_control
+  - eo_adherence
+  - communication
+  criteria:
+  - Treat discount_percent as a whole-number percent and tax_rate as a fractional
+    rate; do not conflate the two units.
+  - Score EO beauty, not generic clean code. Passing tests is necessary but not enough.
+  - Reward an internal model based on behavior-rich collaborating objects that own subtotal,
+    discount, tax, and total behavior.
+  - Penalize orchestration scripts, helper/service centers, primitive obsession, data bags,
+    getter-driven design, and dictionaries used as the domain model.
+  - Reward simple public API plus internal object collaboration; do not require specific
+    class names.
+  - Keep the implementation compact and greenfield; avoid frameworks and unnecessary layers.
+sets:
+- generated
+- eo_greenfield
