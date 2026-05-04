@@ -1,0 +1,170 @@
+{
+  "analysis": [
+    {
+      "prompt": "eo_refactor.md",
+      "strengths": [
+        "Strong cases (>=90): eo_app_skeleton_library, eo_app_skeleton_mp3_player, eo_app_skeleton_warehouse_picking, eo_app_skeleton_meal_delivery, eo_app_skeleton_ticketing_refunds."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): eo_app_skeleton_bookstore (72), eo_app_skeleton_hotel_booking (75), eo_app_skeleton_clinic_appointments (76).",
+        "Failure tags: commands_failed x2, service_orchestration_present x1, return_does_not_restore_inventory x1, helper_function x1, dto_leakage x1."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "eo_app_skeleton_bookstore",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "service_orchestration_present"
+      ],
+      "judge": "Core behavioral requirements are largely met, but the design is service-oriented with an orchestrator class and not sufficiently collaborative OO at the domain object level.",
+      "prompt": "eo_refactor.md",
+      "score": 72
+    },
+    {
+      "case_id": "eo_app_skeleton_library",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "return_does_not_restore_inventory"
+      ],
+      "judge": "The refactor keeps behavior in a compact domain model with preserved APIs, but inventory state is not updated on returns and some orchestration remains dict-centric.",
+      "prompt": "eo_refactor.md",
+      "score": 92
+    },
+    {
+      "case_id": "eo_app_skeleton_mp3_player",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "The patch cleanly models playlist and playback behavior in domain objects with clear invariants and guard-based transitions, while keeping the public API and file scope tight, though it still leans on dict payloads internally in places.",
+      "prompt": "eo_refactor.md",
+      "score": 95
+    },
+    {
+      "case_id": "eo_app_skeleton_warehouse_picking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "helper_function",
+        "dto_leakage"
+      ],
+      "judge": "The patch builds a reasonably compact domain model that plans by FIFO-expiry batches, aggregates demand, reports shortages, tracks remaining stock, and gates commit on carrier acceptance, but it still uses helper-style DTO-oriented seams instead of fully behavior-driven domain boundaries.",
+      "prompt": "eo_refactor.md",
+      "score": 91
+    },
+    {
+      "case_id": "eo_app_skeleton_meal_delivery",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "The patch implements the required domain skeleton with objectized quote/order logic and keeps scope tight, while still relying on a mostly procedural API-level orchestration and boundary DTO dictionaries that prevent a perfect EO refactor score.",
+      "prompt": "eo_refactor.md",
+      "score": 92
+    },
+    {
+      "case_id": "eo_app_skeleton_hotel_booking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "payment_gated_reservation_bug"
+      ],
+      "judge": "The patch keeps the required public API and avoids explicit Service/Manager/Helper classes, but the domain model is still mutable and partially bag-like, and the reservation path fails the key test that inventory must only change after payment authorization.",
+      "prompt": "eo_refactor.md",
+      "score": 75
+    },
+    {
+      "case_id": "eo_app_skeleton_clinic_appointments",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "appointment_batch_selection_mismatch"
+      ],
+      "judge": "The patch preserves public APIs and avoids forbidden service/manager/helper naming, but it fails at least one key scheduling behavior (one expected slot-assigned appointment is missing), indicating flawed domain decision logic for capacity/specialty matching despite the refactor direction.",
+      "prompt": "eo_refactor.md",
+      "score": 76
+    },
+    {
+      "case_id": "eo_app_skeleton_ticketing_refunds",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "payload_dict_leakage"
+      ],
+      "judge": "The patch stays within scope and keeps the required API while moving toward domain behavior objects, but it still depends on primitive transport-shaped dict payloads and float-based refund math that is not fully refined for an elegant-object model.",
+      "prompt": "eo_refactor.md",
+      "score": 92
+    }
+  ],
+  "metadata": {
+    "agent": "codex",
+    "case_sets": [
+      "eo_app_skeleton"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "fast",
+    "model": "gpt-5.3-codex-spark",
+    "model_mode": "fast",
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/elegant_objects/eo_refactor.md"
+    ],
+    "run_id": "20260504-072153-140677-4ab88841",
+    "suite": "elegant_objects"
+  },
+  "prompts": [
+    {
+      "average": 85.6,
+      "cases": 8,
+      "prompt": "eo_refactor.md",
+      "sets": {
+        "eo_app_skeleton": 85.6,
+        "eo_app_skeleton_holdout": 81.0,
+        "eo_app_skeleton_tuning": 88.4,
+        "eo_greenfield": 85.6,
+        "generated": 85.6
+      }
+    }
+  ],
+  "run_id": "20260504-072153-140677-4ab88841",
+  "suite": "elegant_objects",
+  "title": "EO app skeleton full run after duplicate-transition prompt update, Spark fast"
+}

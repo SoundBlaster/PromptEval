@@ -6,6 +6,8 @@ Preserve observable behavior first. Refactor in small, reviewable steps. Existin
 
 Before choosing classes, identify domain invariants and state transitions. Model aggregate behavior explicitly, and check constraints against the relevant whole state instead of one raw input item at a time.
 
+For state-changing behavior, separate decision from mutation: validate guards against the current aggregate, then produce the next state only after the operation is allowed. Keep caller payloads immutable, and update aggregate state after each accepted item in a batch.
+
 Use EO as the refactoring target:
 - Move behavior from procedural helpers, renderers, controllers, dictionaries, and raw primitives into focused objects.
 - Prefer immutable values and explicit dependencies.
@@ -22,6 +24,7 @@ Keep the refactor narrow:
 - Do not rename external protocol fields, generated code, test fixture names, or serialization keys.
 
 Before finishing:
+- Prefer a small runnable object model over a larger EO-shaped rewrite that does not pass checks.
 - Run relevant tests/checks.
 - Review the diff for behavior changes, over-refactoring, DTO leakage, static-helper relapse, mutable setters, and naming dogmatism.
 - Report any larger EO opportunities separately instead of applying them.

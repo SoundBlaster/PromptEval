@@ -1,0 +1,172 @@
+{
+  "analysis": [
+    {
+      "prompt": "eo_refactor.md",
+      "strengths": [
+        "Strong cases (>=90): eo_app_skeleton_bookstore, eo_app_skeleton_library, eo_app_skeleton_mp3_player, eo_app_skeleton_meal_delivery, eo_app_skeleton_hotel_booking."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): eo_app_skeleton_warehouse_picking (72), eo_app_skeleton_clinic_appointments (79).",
+        "Failure tags: commands_failed x2, authorization_as_primitive x1, return_books_not_idempotent x1, dto_leakage x1, syntax_error x1."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "eo_app_skeleton_bookstore",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "authorization_as_primitive"
+      ],
+      "judge": "The patch adds a compact domain-centric implementation that satisfies the required APIs and ordering/quoting rules, but payment authorization remains a primitive dict flag rather than a behavior-rich domain concept.",
+      "prompt": "eo_refactor.md",
+      "score": 94
+    },
+    {
+      "case_id": "eo_app_skeleton_library",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "return_books_not_idempotent"
+      ],
+      "judge": "The patch captures the lending domain with value objects and preserves required APIs, but return handling can incorrectly process duplicate return entries as additional closures/fines instead of closing each active loan once.",
+      "prompt": "eo_refactor.md",
+      "score": 93
+    },
+    {
+      "case_id": "eo_app_skeleton_mp3_player",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "dto_leakage"
+      ],
+      "judge": "The patch keeps the required public APIs and stays in-scope with a compact object model, but still leaks boundary-shaped dict payloads into domain internals rather than fully behavior-rich objects.",
+      "prompt": "eo_refactor.md",
+      "score": 93
+    },
+    {
+      "case_id": "eo_app_skeleton_warehouse_picking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "syntax_error"
+      ],
+      "judge": "The patch introduces a compact domain-oriented model for batches, demands, shortages, planning, and commit gating, but it contains a compile-blocking syntax error and misses some required remaining-stock semantics in `plan_pick`.",
+      "prompt": "eo_refactor.md",
+      "score": 72
+    },
+    {
+      "case_id": "eo_app_skeleton_meal_delivery",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_tuning"
+      ],
+      "failure_tags": [],
+      "judge": "The patch implements the required domain behavior with a focused object model, keeps API surface and file scope tight, and respects the service/manager/helper constraints.",
+      "prompt": "eo_refactor.md",
+      "score": 95
+    },
+    {
+      "case_id": "eo_app_skeleton_hotel_booking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "anemic_domain_objects",
+        "weak_state_transition"
+      ],
+      "judge": "The patch meets required public APIs and scope, but the domain model remains somewhat anemic with primitive-heavy orchestration and no explicit aggregate-level state transition beyond returning a copied availability map.",
+      "prompt": "eo_refactor.md",
+      "score": 91
+    },
+    {
+      "case_id": "eo_app_skeleton_clinic_appointments",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "functional_regressions"
+      ],
+      "judge": "The patch keeps the refactor surface narrow and removes public API breakage, but the submitted behavior still regresses in tested scenarios (capacity matching/late-fee output), which is a clear semantic gap from the requested domain behavior.",
+      "prompt": "eo_refactor.md",
+      "score": 79
+    },
+    {
+      "case_id": "eo_app_skeleton_ticketing_refunds",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "domain_payload_leakage"
+      ],
+      "judge": "The patch cleanly keeps scope tight and preserves the required public API while introducing a value-object driven pricing/refund model, but still leaks boundary payload structures into domain logic in several places.",
+      "prompt": "eo_refactor.md",
+      "score": 92
+    }
+  ],
+  "metadata": {
+    "agent": "codex",
+    "case_sets": [
+      "eo_app_skeleton"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "fast",
+    "model": "gpt-5.3-codex-spark",
+    "model_mode": "fast",
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/elegant_objects/eo_refactor.md"
+    ],
+    "run_id": "20260504-071522-571532-bdeae9ab",
+    "suite": "elegant_objects"
+  },
+  "prompts": [
+    {
+      "average": 88.6,
+      "cases": 8,
+      "prompt": "eo_refactor.md",
+      "sets": {
+        "eo_app_skeleton": 88.6,
+        "eo_app_skeleton_holdout": 87.3,
+        "eo_app_skeleton_tuning": 89.4,
+        "eo_greenfield": 88.6,
+        "generated": 88.6
+      }
+    }
+  ],
+  "run_id": "20260504-071522-571532-bdeae9ab",
+  "suite": "elegant_objects",
+  "title": "EO app skeleton full run after state-transition prompt update, Spark fast"
+}
