@@ -31,7 +31,7 @@ Or record automatically after a run:
 peval run --suite elegant_objects --case-set eo_app_skeleton_holdout --prompts prompts/elegant_objects/baseline.md prompts/elegant_objects/eo_refactor.md --agent codex --record --record-title "EO app skeleton holdout"
 ```
 
-Records are written to `records/<suite>/` as Markdown plus JSON. Commit these summaries when the run result is part of prompt research; keep raw `runs/` artifacts local unless a diff or trace is needed for debugging a specific failure.
+Records are written to `records/<suite>/` as Markdown plus JSON. Each record includes prompt scores, per-case results, and a deterministic strengths/weaknesses analysis based on scores, failure tags, and judge summaries. Commit these summaries when the run result is part of prompt research; keep raw `runs/` artifacts local unless a diff or trace is needed for debugging a specific failure.
 
 ## Avoid prompt overfitting
 Suites can tag cases into sets. The included `elegant_objects` suite uses:

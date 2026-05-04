@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections import Counter
 from pathlib import Path
 from typing import Any
 import json
@@ -75,17 +76,89 @@ def _case_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
+def _shared_case_wins(prompt: str, rows: list[dict[str, Any]]) -> tuple[int, int]:
+    by_case: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        by_case[row["case_id"]].append(row)
+    wins = 0
+    total = 0
+    for case_rows in by_case.values():
+        if len(case_rows) < 2:
+            continue
+        total += 1
+        best = max(row["score"]["total"] for row in case_rows)
+        if any(_prompt_name(row["prompt"]) == prompt and row["score"]["total"] == best for row in case_rows):
+            wins += 1
+    return wins, total
+
+
+def _failure_tags(rows: list[dict[str, Any]]) -> Counter:
+    tags = Counter()
+    for row in rows:
+        tags.update(row["score"].get("failure_tags", []))
+    return tags
+
+
+def _prompt_analysis(rows: list[dict[str, Any]], summaries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        grouped[_prompt_name(row["prompt"])].append(row)
+    best_average = max(summary["average"] for summary in summaries)
+    analysis = []
+    for summary in summaries:
+        prompt = summary["prompt"]
+        prompt_rows = grouped[prompt]
+        strengths = []
+        weaknesses = []
+        high_cases = [row["case_id"] for row in prompt_rows if row["score"]["total"] >= 90]
+        low_cases = [
+            f"{row['case_id']} ({row['score']['total']})"
+            for row in prompt_rows
+            if row["score"]["total"] < 85
+        ]
+        tags = _failure_tags(prompt_rows)
+        wins, shared = _shared_case_wins(prompt, rows)
+
+        if summary["average"] == best_average and len(summaries) > 1:
+            strengths.append("Top average score in this run.")
+        if shared:
+            strengths.append(f"Best or tied score on {wins}/{shared} shared cases.")
+        if high_cases:
+            strengths.append(f"Strong cases (>=90): {', '.join(high_cases[:5])}.")
+        if not tags:
+            strengths.append("No failure tags recorded.")
+
+        if low_cases:
+            weaknesses.append(f"Weak cases (<85): {', '.join(low_cases[:5])}.")
+        if tags:
+            common = ", ".join(f"{tag} x{count}" for tag, count in tags.most_common(5))
+            weaknesses.append(f"Failure tags: {common}.")
+        if not weaknesses:
+            weaknesses.append("No clear weaknesses surfaced by scores or failure tags.")
+
+        analysis.append(
+            {
+                "prompt": prompt,
+                "strengths": strengths,
+                "weaknesses": weaknesses,
+            }
+        )
+    return analysis
+
+
 def _record_payload(run: Path, title: str | None = None) -> dict[str, Any]:
     rows = _rows(run)
     if not rows:
         raise ValueError(f"Run has no results: {run}")
     metadata = _metadata(run)
+    prompts = _prompt_summary(rows)
     return {
         "run_id": run.name,
         "title": title or metadata.get("title") or run.name,
         "suite": metadata.get("suite") or rows[0]["suite"],
         "metadata": metadata,
-        "prompts": _prompt_summary(rows),
+        "prompts": prompts,
+        "analysis": _prompt_analysis(rows, prompts),
         "cases": _case_summary(rows),
     }
 
@@ -118,6 +191,11 @@ def _markdown(record: dict[str, Any]) -> str:
         row = [prompt["prompt"], str(prompt["cases"]), f"{prompt['average']:.1f}"]
         row.extend(f"{prompt['sets'].get(key, 'n/a')}" for key in set_keys)
         lines.append("| " + " | ".join(row) + " |")
+    lines += ["", "## Strengths And Weaknesses", "", "| Prompt | Strengths | Weaknesses |", "|---|---|---|"]
+    for item in record.get("analysis", []):
+        strengths = "<br>".join(item["strengths"]).replace("|", "\\|")
+        weaknesses = "<br>".join(item["weaknesses"]).replace("|", "\\|")
+        lines.append(f"| {item['prompt']} | {strengths} | {weaknesses} |")
     lines += ["", "## Case Results", "", "| Case | Prompt | Score | Failure tags | Judge |", "|---|---|---:|---|---|"]
     for case in record["cases"]:
         tags = ", ".join(case["failure_tags"])

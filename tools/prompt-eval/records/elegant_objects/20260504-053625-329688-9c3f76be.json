@@ -1,4 +1,28 @@
 {
+  "analysis": [
+    {
+      "prompt": "eo_refactor.md",
+      "strengths": [
+        "Top average score in this run.",
+        "Best or tied score on 1/3 shared cases.",
+        "Strong cases (>=90): eo_app_skeleton_ticketing_refunds."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): eo_app_skeleton_hotel_booking (76), eo_app_skeleton_clinic_appointments (66).",
+        "Failure tags: commands_failed x2, inventory_mutation_without_authorized_payment x1, contains_service_class x1, scheduling_behavior_regression x1, unused_discount_policy x1."
+      ]
+    },
+    {
+      "prompt": "baseline.md",
+      "strengths": [
+        "Best or tied score on 2/3 shared cases."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): eo_app_skeleton_hotel_booking (77), eo_app_skeleton_clinic_appointments (77), eo_app_skeleton_ticketing_refunds (80).",
+        "Failure tags: commands_failed x1, inventory_not_charged_per_unique_stay_night x1, dict_centric_service_style x1, procedural_dict_based_domain x1."
+      ]
+    }
+  ],
   "cases": [
     {
       "case_id": "eo_app_skeleton_hotel_booking",

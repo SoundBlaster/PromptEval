@@ -1,4 +1,16 @@
 {
+  "analysis": [
+    {
+      "prompt": "eo_refactor.md",
+      "strengths": [
+        "Strong cases (>=90): eo_app_skeleton_mp3_player, eo_app_skeleton_warehouse_picking, eo_app_skeleton_meal_delivery, eo_app_skeleton_hotel_booking, eo_app_skeleton_ticketing_refunds."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): eo_app_skeleton_library (82), eo_app_skeleton_clinic_appointments (80).",
+        "Failure tags: cart_quantity_aggregation_missing x1, delegates_to_unknown_orchestrators x1, orchestrator_style_flow x1, roomtype_reserve_internal_path_unused x1, commands_failed x1."
+      ]
+    }
+  ],
   "cases": [
     {
       "case_id": "eo_app_skeleton_bookstore",
