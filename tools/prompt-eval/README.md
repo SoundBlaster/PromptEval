@@ -71,7 +71,7 @@ peval run --suite elegant_objects --prompts prompts/elegant_objects/eo_lite.md -
 If `codex` CLI is not installed, run is marked gracefully with a clear error.
 Pass `--model <name>` to select a Codex model, for example `--model gpt-5.3-codex-spark`.
 Model mode is not forced by default; Codex uses the selected model's own default reasoning effort.
-Pass `--model-mode fast` to explicitly run Codex with `model_reasoning_effort="low"`, or `--model-mode medium` for `model_reasoning_effort="medium"`.
+Pass `--model-mode fast` to explicitly run Codex with `model_reasoning_effort="low"`, `--model-mode medium` for `model_reasoning_effort="medium"`, or `--model-mode xhigh` for `model_reasoning_effort="xhigh"`.
 Pass `--codex-bin <path>` when multiple Codex binaries are installed and PATH would otherwise pick the wrong one.
 Codex runs use `--ignore-user-config` plus an isolated temporary `CODEX_HOME` with copied auth, so evals do not inherit global MCP servers or optional runtime features.
 
@@ -104,7 +104,7 @@ peval generate-case "Add an invoice tax rule task where the good solution keeps 
 
 The generator writes `generated-cases/<case-id>/` with `before/`, `good/`, `bad/`, and `case.yaml`.
 Review the draft before promoting it into `fixtures/<case-id>/` and `evals/<suite>/cases/<case-id>.yaml`.
-Pass `--case-id`, `--description-file`, `--model`, `--model-mode fast`, `--model-mode medium`, or `--codex-bin` when needed.
+Pass `--case-id`, `--description-file`, `--model`, `--model-mode fast`, `--model-mode medium`, `--model-mode xhigh`, or `--codex-bin` when needed.
 
 ## Add a suite
 Create a new directory under `evals/<suite>/`, add a `suite.yaml`, and place matching prompts under `prompts/<suite>/`.

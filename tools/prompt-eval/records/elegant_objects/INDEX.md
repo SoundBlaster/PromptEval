@@ -11,3 +11,4 @@
 | [20260504-072153-140677-4ab88841](20260504-072153-140677-4ab88841.md) | EO app skeleton full run after duplicate-transition prompt update, Spark fast | eo_refactor.md | eo_refactor.md=85.6 |
 | [20260504-111751-879871-a3df8997](20260504-111751-879871-a3df8997.md) | EO app skeleton full run, gpt-5.5 medium | eo_refactor.md | eo_refactor.md=95.2 |
 | [20260504-194914-310437-5c8bc003](20260504-194914-310437-5c8bc003.md) | EO app skeleton holdout fixture-good with binary judge evals | eo_refactor.md | eo_refactor.md=95.7 |
+| [20260504-195612-231465-b8e5d517](20260504-195612-231465-b8e5d517.md) | EO app skeleton holdout, Spark xhigh | eo_refactor.md | eo_refactor.md=87.3 |

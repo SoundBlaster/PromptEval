@@ -1,0 +1,144 @@
+{
+  "analysis": [
+    {
+      "prompt": "eo_refactor.md",
+      "strengths": [
+        "Strong cases (>=90): eo_app_skeleton_ticketing_refunds.",
+        "No judge binary eval failures recorded."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): eo_app_skeleton_hotel_booking (84).",
+        "Failure tags: commands_failed x2, deterministic_failure_typeerror x1, referral-default-deny x1."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "eo_app_skeleton_hotel_booking",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "deterministic_failure_typeerror"
+      ],
+      "judge": "The patch is directionally aligned with domain ownership and compact API goals but is currently blocked by a runtime `TypeError` in `app.py`, so the intended behavior is not fully delivered.",
+      "judge_binary_evals": [
+        {
+          "category": "eo_adherence",
+          "evidence": "Pricing and discount logic is in `RoomRates`/`PriceBreakdown`, availability logic is in `RoomInventory`, and reservation transition is handled by `RoomType.reserve`, with top-level functions coordinating via domain objects.",
+          "id": "ownership",
+          "passed": true,
+          "question": "Does the patch keep pricing, availability, and reservation behavior inside focused domain objects rather than helper-style orchestration or passive data carriers?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Only `hotel_booking/app.py` changed and the required public functions `quote_stay` and `reserve_stay` remain; no persistence, UI, payment gateway, or framework scaffolding was introduced.",
+          "id": "local_api_scope",
+          "passed": true,
+          "question": "Does the patch keep a compact public API while avoiding persistence, framework setup, or unrelated booking-platform overbuild?"
+        }
+      ],
+      "prompt": "eo_refactor.md",
+      "score": 84
+    },
+    {
+      "case_id": "eo_app_skeleton_clinic_appointments",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [
+        "commands_failed",
+        "referral-default-deny"
+      ],
+      "judge": "The patch is mostly well-scoped and EO-oriented in object ownership, but it appears to deny a valid request due to strict default referral interpretation, which affects expected scheduling outcome.",
+      "judge_binary_evals": [
+        {
+          "category": "eo_adherence",
+          "evidence": "Scheduling, eligibility, capacity reservation, and check-in logic are implemented on `ClinicSchedule`, `Doctor`, `Patient`, `Appointment`, and `Arrival`, with only thin orchestration in `schedule_visits` and `check_in`; the core rules are not delegated to Service/Manager/Helper-like layers.",
+          "id": "ownership",
+          "passed": true,
+          "question": "Does the patch keep scheduling, eligibility, and check-in behavior inside focused domain objects rather than helper-style orchestration or passive data carriers?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Only `clinic/app.py` changed, and required public entry points remain (`schedule_visits`, `check_in`) while avoiding persistence, UI, billing, messaging, and unrelated platform abstractions.",
+          "id": "local_api_scope",
+          "passed": true,
+          "question": "Does the patch keep a compact public API while avoiding persistence, messaging, or unrelated appointment-platform overbuild?"
+        }
+      ],
+      "prompt": "eo_refactor.md",
+      "score": 85
+    },
+    {
+      "case_id": "eo_app_skeleton_ticketing_refunds",
+      "case_sets": [
+        "generated",
+        "eo_greenfield",
+        "eo_app_skeleton",
+        "eo_app_skeleton_holdout"
+      ],
+      "failure_tags": [],
+      "judge": "The patch is a narrow, domain-oriented refactor that preserves the required public APIs and keeps behavior behind focused domain objects, with no extra platform concerns added.",
+      "judge_binary_evals": [
+        {
+          "category": "eo_adherence",
+          "evidence": "The two public functions now only map payloads to domain objects and delegate calculation to `PricingEngine`/`RefundEngine`, so pricing and refund behavior is owned by domain collaborators instead of a script-like function body.",
+          "id": "ownership",
+          "passed": true,
+          "question": "Does the patch keep pricing, capacity, and refund behavior inside focused domain objects rather than helper-style orchestration or passive data carriers?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Only `ticketing/app.py` changed, `price_tickets` and `refund_tickets` signatures are preserved, and no persistence/UI/payment/delivery code or broad service-layer APIs were introduced.",
+          "id": "local_api_scope",
+          "passed": true,
+          "question": "Does the patch keep a compact public API while avoiding persistence, delivery, or unrelated ticketing-platform overbuild?"
+        }
+      ],
+      "prompt": "eo_refactor.md",
+      "score": 93
+    }
+  ],
+  "metadata": {
+    "agent": "codex",
+    "case_sets": [
+      "eo_app_skeleton_holdout"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "xhigh",
+    "model": "gpt-5.3-codex-spark",
+    "model_mode": "xhigh",
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/elegant_objects/eo_refactor.md"
+    ],
+    "run_id": "20260504-195612-231465-b8e5d517",
+    "suite": "elegant_objects"
+  },
+  "prompts": [
+    {
+      "average": 87.3,
+      "cases": 3,
+      "prompt": "eo_refactor.md",
+      "sets": {
+        "eo_app_skeleton": 87.3,
+        "eo_app_skeleton_holdout": 87.3,
+        "eo_greenfield": 87.3,
+        "generated": 87.3
+      }
+    }
+  ],
+  "run_id": "20260504-195612-231465-b8e5d517",
+  "suite": "elegant_objects",
+  "title": "EO app skeleton holdout, Spark xhigh"
+}
