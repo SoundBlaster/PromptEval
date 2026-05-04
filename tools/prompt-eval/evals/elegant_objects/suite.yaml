@@ -68,3 +68,7 @@ cases:
   sets:
   - generated
   - eo_feature_lens
+- path: eo_greenfield_quote_pricing.yaml
+  sets:
+  - generated
+  - eo_greenfield
