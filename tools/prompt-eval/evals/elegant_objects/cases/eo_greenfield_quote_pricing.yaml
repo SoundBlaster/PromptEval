@@ -17,19 +17,22 @@ checks:
     - -q
     - .
   required_regex:
-  - pattern: price_quote
-    target: diff
+  - pattern: def\s+price_quote\s*\(
+    target: files
+    paths:
+    - quote_pricing/pricing.py
+    - quote_pricing/__init__.py
     reason: Preserve the public product API required by tests
   forbidden_regex:
-  - pattern: QuoteHelper
+  - pattern: \bQuoteHelper\b
     target: files
     reason: Greenfield design should not centralize pricing in a helper object
-  - pattern: dict
+  - pattern: \bquote\s*=\s*\{
     target: files
     reason: Boundary dictionaries should not become the internal domain model
-  - pattern: helper
+  - pattern: \b\w*Helper\b
     target: files
-    reason: Avoid helper-oriented design in greenfield EO code
+    reason: Avoid helper-centered design in greenfield EO code
   max_changed_files: 8
 rubric:
   functional_correctness: 40
