@@ -1,0 +1,59 @@
+id: fsd_greenfield_auth
+title: Build a login feature following FSD from scratch
+fixture: fsd_greenfield_auth
+task: |
+  Implement a `features/login` slice for the auth page. The feature must:
+  - show a login form (username + password fields, submit button)
+  - call POST /api/auth/login on submit using the shared HTTP client
+  - handle loading state and surface error messages
+  - export LoginForm and useLogin through the feature's public API
+
+  The auth page scaffold at pages/auth already exists — wire LoginForm into it.
+  Use shared/api for the HTTP call. Do not add persistence, routing, or auth tokens.
+checks:
+  required_files:
+  - src/features/login/index.ts
+  - src/features/login/ui/login-form.tsx
+  - src/features/login/model/use-login.ts
+  - src/features/login/api/login.ts
+rubric:
+  functional_correctness: 25
+  layer_compliance: 20
+  public_api_correctness: 20
+  segment_organization: 25
+  scope_control: 10
+notes: |
+  Green-field task. A strong solution places async/mutation logic in model/,
+  the HTTP call in api/, and the React component in ui/. index.ts exports only
+  the public surface. The page imports through @/features/login.
+judge:
+  categories: [public_api_correctness, segment_organization, layer_compliance]
+  criteria:
+  - Score FSD structural quality, not generic clean code. Steiger passing is necessary
+    but not sufficient.
+  - Reward correct segment placement: api/ for HTTP, model/ for hook/state, ui/ for component.
+  - Penalize mixing API calls inside UI components, state in api/, or flat file structure.
+  - Reward a minimal, intentional index.ts that exports only what pages need.
+  - Penalize exporting internals (loginRequest, validateCredentials) through index.ts.
+  binary_evals:
+  - id: model_owns_logic
+    category: segment_organization
+    question: Is async/mutation logic (fetch call, loading state, error handling) in model/ rather than directly in the UI component?
+    pass_condition: The hook in model/ manages the async call and state; the component delegates to it.
+    fail_condition: The UI component directly calls fetch or manages loading/error state inline.
+  - id: api_segment_isolated
+    category: segment_organization
+    question: Is the raw HTTP request function isolated in api/ and not mixed into model/ or ui/?
+    pass_condition: api/login.ts (or similar) contains only the request function; model/ imports from it.
+    fail_condition: The fetch call is inlined in the hook or component without a dedicated api/ file.
+  - id: public_api_minimal
+    category: public_api_correctness
+    question: Does index.ts export only the public contract (LoginForm, useLogin) without leaking internal functions?
+    pass_condition: index.ts exports LoginForm and/or useLogin; internal helpers like loginRequest are not exported.
+    fail_condition: index.ts exports internal implementation details or uses export *.
+  - id: no_layer_violation
+    category: layer_compliance
+    question: Does the feature avoid importing from pages/ or widgets/?
+    pass_condition: The feature only imports from entities/, shared/, or its own segments.
+    fail_condition: The feature imports anything from pages/ or widgets/.
+sets: [fsd_greenfield]

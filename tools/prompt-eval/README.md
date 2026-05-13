@@ -1,7 +1,7 @@
 # Prompt Eval
 
 Small local harness to compare coding-agent prompts on deterministic code-edit tasks.
-The core runner is domain-agnostic; `elegant_objects` is the first included suite.
+The core runner is domain-agnostic; `elegant_objects` and `feature_sliced_design` are the included suites.
 
 ## Quick start
 ```bash
@@ -134,6 +134,45 @@ Compact records under `records/<suite>/` also summarize recurring failed binary 
 ## Limitations
 - OpenAI judge currently stubbed; use `--judge subagent` for local Codex-based judging.
 - Codex execution depends on local CLI availability.
+
+## Feature-Sliced Design suite
+
+Evaluates how well a coding agent follows [Feature-Sliced Design](https://feature-sliced.design/) rules
+on TypeScript/React web frontend tasks. Uses [Steiger](https://github.com/feature-sliced/steiger) as the
+authoritative structural linter.
+
+### One-time setup
+
+```bash
+npm install -g steiger typescript
+```
+
+### Offline demo
+
+```bash
+peval run --suite feature_sliced_design --prompts prompts/feature_sliced_design/fsd_guide.md --agent fixture-good
+peval run --suite feature_sliced_design --prompts prompts/feature_sliced_design/fsd_guide.md --agent fixture-bad
+```
+
+Good fixtures should score higher than bad. Case sets: `tuning` (3 refactoring cases), `fsd_greenfield` (1 green-field case).
+
+### Mode-specific runs
+
+```bash
+# Refactoring cases only (tuning set)
+peval run --suite feature_sliced_design --case-set tuning --prompts prompts/feature_sliced_design/baseline.md prompts/feature_sliced_design/fsd_guide.md --agent codex
+
+# Green-field case with LLM judge
+peval run --suite feature_sliced_design --case-set fsd_greenfield --prompts prompts/feature_sliced_design/fsd_guide.md --agent codex --judge subagent
+```
+
+### FSD rubric categories
+
+- `functional_correctness` — feature behaves as specified
+- `layer_compliance` — correct import direction; no sibling cross-imports
+- `public_api_correctness` — all external imports through slice `index.ts`
+- `segment_organization` — code in correct segment (`ui/`, `model/`, `api/`, `lib/`)
+- `scope_control` — unrelated files untouched
 
 ## Next steps
 - Add stronger rubric-to-check mapping per case.

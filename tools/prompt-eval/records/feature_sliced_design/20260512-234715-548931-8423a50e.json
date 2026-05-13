@@ -1,0 +1,390 @@
+{
+  "analysis": [
+    {
+      "prompt": "fsd_guide.md",
+      "strengths": [
+        "Top average score in this run.",
+        "Best or tied score on 1/1 shared cases.",
+        "Strong cases (>=90): fsd_greenfield_catalog."
+      ],
+      "weaknesses": [
+        "Failure tags: domain_slices_missing x1.",
+        "Judge binary eval failures: domain_slices_named x1."
+      ]
+    },
+    {
+      "prompt": "fsd_terse.md",
+      "strengths": [
+        "Top average score in this run.",
+        "Best or tied score on 1/1 shared cases.",
+        "Strong cases (>=90): fsd_greenfield_catalog.",
+        "No failure tags recorded.",
+        "No judge binary eval failures recorded."
+      ],
+      "weaknesses": [
+        "No clear weaknesses surfaced by scores or failure tags."
+      ]
+    },
+    {
+      "prompt": "fsd_strict.md",
+      "strengths": [
+        "Best or tied score on 0/1 shared cases."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): fsd_greenfield_catalog (80).",
+        "Failure tags: missing_feature_slice x1, internal_slice_imports x1, shared_missing_public_api x1.",
+        "Judge binary eval failures: domain_slices_named x1, public_api_per_slice x1."
+      ]
+    },
+    {
+      "prompt": "baseline.md",
+      "strengths": [
+        "Best or tied score on 0/1 shared cases."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): fsd_greenfield_catalog (68).",
+        "Failure tags: missing_feature_slice x1, broken_slice_public_apis x1, cross_slice_internal_import x1.",
+        "Judge binary eval failures: domain_slices_named x1, public_api_per_slice x1."
+      ]
+    },
+    {
+      "prompt": "fsd_minimal.md",
+      "strengths": [
+        "Best or tied score on 0/1 shared cases."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): fsd_greenfield_catalog (58).",
+        "Failure tags: missing_feature_slice x1, internal_cross_slice_imports x1, nonstandard_slice_segments x1.",
+        "Judge binary eval failures: domain_slices_named x1, public_api_per_slice x1, segments_named_correctly x1."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "fsd_greenfield_catalog",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "missing_feature_slice",
+        "broken_slice_public_apis",
+        "cross_slice_internal_import"
+      ],
+      "judge": "The patch adopts an FSD-like folder layout and puts cart ownership in `entities/cart`, but it is architecturally unsound for public APIs due to recursive/invalid `index` and re-export files and missing proper slice entry-point imports.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Patch introduces `src/entities/cart`, `src/entities/product`, `src/pages/catalog`, and `src/shared`, which are FSD layer directories under `src/`.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Entity slices are domain-noun named (`product`, `cart`), but there is no feature slice with a verb-phrase name (e.g., `add-to-cart`) for the requested feature behavior.",
+          "id": "domain_slices_named",
+          "passed": false,
+          "question": "Are slices named by business meaning \u2014 features as verb phrases (add-to-cart, ...) and entities as nouns (product, cart, ...) \u2014 rather than as technical groupings?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`src/pages/catalog/index.ts` re-exports from `./index` (self-reference), and `CatalogPage` imports `@/entities/cart/lib/useCart` instead of a slice root API; additional slice API files are recursive (`src/entities/cart/lib/useCart.ts`, `src/entities/product/api.ts`, `src/entities/product/model.ts`, `src/shared/lib/localStorage.ts`).",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "No forbidden technical segment names are introduced inside slices; used segments/files are `api`, `model`, `lib`-style names.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Cart hook path is `src/entities/cart/lib/useCart.ts`, placing cart state ownership in `entities/cart`.",
+          "id": "cart_in_entity_layer",
+          "passed": true,
+          "question": "Does cart state (the useCart hook and storage logic) live in an entity slice (entities/cart) rather than inside a feature, page, or global hooks folder?"
+        }
+      ],
+      "prompt": "baseline.md",
+      "score": 68
+    },
+    {
+      "case_id": "fsd_greenfield_catalog",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "missing_feature_slice",
+        "internal_cross_slice_imports",
+        "nonstandard_slice_segments"
+      ],
+      "judge": "The patch follows some FSD layering structure and keeps cart state in `entities/cart`, but misses feature-level business slicing and violates public API import discipline and strict segment naming.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Added `src/entities/`, `src/pages/`, and `src/shared/` (no flat `src/components`, `src/hooks`, or `src/services` usage for the new feature).",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Entities are noun-based (`entities/product`, `entities/cart`), but there is no feature slice using a verb-phrase business name; only pages/shared/entities are present.",
+          "id": "domain_slices_named",
+          "passed": false,
+          "question": "Are slices named by business meaning \u2014 features as verb phrases (add-to-cart, ...) and entities as nouns (product, cart, ...) \u2014 rather than as technical groupings?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Slices have `index.ts`, but imports use internal paths such as `../../entities/product/model/useProducts`, `../../entities/cart/model/useCart`, and `../../entities/product/model/types` instead of layer/slice public imports.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Pages use `ui/` and entities use `model/`, but slice internals include nonstandard segment folders `shared/lib/cart-summary/` and `shared/lib/local-storage/` (e.g., `cart-summary`) rather than standard segment names.",
+          "id": "segments_named_correctly",
+          "passed": false,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Cart state hook is in `src/entities/cart/model/useCart.ts`; persistence helpers are in shared storage module (`src/shared/lib/local-storage`) which aligns with the allowed split.",
+          "id": "cart_in_entity_layer",
+          "passed": true,
+          "question": "Does cart state (the useCart hook and storage logic) live in an entity slice (entities/cart) rather than inside a feature, page, or global hooks folder?"
+        }
+      ],
+      "prompt": "fsd_minimal.md",
+      "score": 58
+    },
+    {
+      "case_id": "fsd_greenfield_catalog",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [],
+      "judge": "The patch is FSD-consistent in layering, naming, segment structure, and cross-slice import boundaries.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Patch adds `src/entities/...`, `src/features/...`, `src/pages/...`, and `src/shared/...`, which are FSD layer roots rather than flat technical folders.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Feature slice is `add-to-cart` (verb phrase), entity slices are `product` and `cart` (nouns), matching domain-oriented naming.",
+          "id": "domain_slices_named",
+          "passed": true,
+          "question": "Are slices named by business meaning \u2014 features as verb phrases (add-to-cart, ...) and entities as nouns (product, cart, ...) \u2014 rather than as technical groupings?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Created slices `entities/cart`, `entities/product`, `features/add-to-cart`, and `pages/catalog` each have `index.ts`; other slices are imported via `@/entities/...`, `@/features/...`, and `@/pages/...` only.",
+          "id": "public_api_per_slice",
+          "passed": true,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Segments used are `model`, `api`, `ui`, and `lib`; no technical segment names like `components/`, `hooks/`, `utils/`, or `services/` are used inside slices.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "`useCart` and cart state persistence reside in `src/entities/cart/model/useCart.ts`, so cart state is owned by the entity layer.",
+          "id": "cart_in_entity_layer",
+          "passed": true,
+          "question": "Does cart state (the useCart hook and storage logic) live in an entity slice (entities/cart) rather than inside a feature, page, or global hooks folder?"
+        }
+      ],
+      "prompt": "fsd_terse.md",
+      "score": 100
+    },
+    {
+      "case_id": "fsd_greenfield_catalog",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "domain_slices_missing"
+      ],
+      "judge": "Overall, the patch is largely FSD-compliant with proper layers, public APIs, and segment names, but it lacks any feature slice using verb-based naming, which blocks full compliance with naming conventions across all expected slice types.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Introduced `src/entities/cart`, `src/entities/product`, and `src/pages/catalog`, so the implementation uses multiple FSD layers rather than flat technical folders.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "`entities/cart` and `entities/product` are domain nouns, but there is no feature slice at all (e.g., no `features/add-to-cart`), so feature naming cannot be judged positively.",
+          "id": "domain_slices_named",
+          "passed": false,
+          "question": "Are slices named by business meaning \u2014 features as verb phrases (add-to-cart, ...) and entities as nouns (product, cart, ...) \u2014 rather than as technical groupings?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`src/entities/cart/index.ts`, `src/entities/product/index.ts`, and `src/pages/catalog/index.ts` exist and page imports use `@/entities/...` and `@/pages/catalog` instead of internal segment paths.",
+          "id": "public_api_per_slice",
+          "passed": true,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Created segments are `ui/`, `model/`, `api/`, and `lib/`; no technical segment folders like `components`, `hooks`, `utils`, or `services` were introduced.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Cart context/hook and localStorage persistence are both implemented in `src/entities/cart/model` and `src/entities/cart/lib`.",
+          "id": "cart_in_entity_layer",
+          "passed": true,
+          "question": "Does cart state (the useCart hook and storage logic) live in an entity slice (entities/cart) rather than inside a feature, page, or global hooks folder?"
+        }
+      ],
+      "prompt": "fsd_guide.md",
+      "score": 100
+    },
+    {
+      "case_id": "fsd_greenfield_catalog",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "missing_feature_slice",
+        "internal_slice_imports",
+        "shared_missing_public_api"
+      ],
+      "judge": "Layer usage is present, but the patch violates strict FSD public-API rules and lacks a feature-layer slice for catalog/cart behavior.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Created `src/entities/*`, `src/pages/*`, and `src/shared/*`, so architecture is layered and not flat.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Entity slices are business nouns (`cart`, `product`), but there is no feature slice (e.g., `add-to-cart`) for catalog interaction logic.",
+          "id": "domain_slices_named",
+          "passed": false,
+          "question": "Are slices named by business meaning \u2014 features as verb phrases (add-to-cart, ...) and entities as nouns (product, cart, ...) \u2014 rather than as technical groupings?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`entities/cart` and `entities/product` have `index.ts`, but `ProductList` imports `@/entities/cart/ui/AddToCartButton` and `AddToCartButton` imports `@/entities/cart/lib/useCart`, bypassing slice public APIs; `shared` also lacks a root API.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Slices use `ui/`, `model/`, `api/`, and `lib/` segments consistently with FSD recommendations; no `components/`, `hooks/`, `utils/`, or `services/` segments are introduced.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Cart state hook and persistence logic are located in `src/entities/cart/lib` as required.",
+          "id": "cart_in_entity_layer",
+          "passed": true,
+          "question": "Does cart state (the useCart hook and storage logic) live in an entity slice (entities/cart) rather than inside a feature, page, or global hooks folder?"
+        }
+      ],
+      "prompt": "fsd_strict.md",
+      "score": 80
+    }
+  ],
+  "metadata": {
+    "agent": "openai",
+    "case_sets": [
+      "fsd_greenfield_pure"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "fast",
+    "model": "openai/gpt-oss-20b",
+    "model_mode": null,
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/baseline.md",
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/fsd_minimal.md",
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/fsd_terse.md",
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/fsd_guide.md",
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/fsd_strict.md"
+    ],
+    "run_id": "20260512-234715-548931-8423a50e",
+    "suite": "feature_sliced_design"
+  },
+  "prompts": [
+    {
+      "average": 100.0,
+      "cases": 1,
+      "prompt": "fsd_guide.md",
+      "sets": {
+        "fsd_greenfield": 100.0,
+        "fsd_greenfield_pure": 100.0
+      }
+    },
+    {
+      "average": 100.0,
+      "cases": 1,
+      "prompt": "fsd_terse.md",
+      "sets": {
+        "fsd_greenfield": 100.0,
+        "fsd_greenfield_pure": 100.0
+      }
+    },
+    {
+      "average": 80.0,
+      "cases": 1,
+      "prompt": "fsd_strict.md",
+      "sets": {
+        "fsd_greenfield": 80.0,
+        "fsd_greenfield_pure": 80.0
+      }
+    },
+    {
+      "average": 68.0,
+      "cases": 1,
+      "prompt": "baseline.md",
+      "sets": {
+        "fsd_greenfield": 68.0,
+        "fsd_greenfield_pure": 68.0
+      }
+    },
+    {
+      "average": 58.0,
+      "cases": 1,
+      "prompt": "fsd_minimal.md",
+      "sets": {
+        "fsd_greenfield": 58.0,
+        "fsd_greenfield_pure": 58.0
+      }
+    }
+  ],
+  "run_id": "20260512-234715-548931-8423a50e",
+  "suite": "feature_sliced_design",
+  "title": "FSD pure-greenfield ladder (5 prompts), gpt-oss-20b, Spark judge"
+}

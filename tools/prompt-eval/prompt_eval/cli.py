@@ -57,12 +57,24 @@ def main() -> None:
     runp = sub.add_parser("run")
     runp.add_argument("--suite", required=True)
     runp.add_argument("--prompts", nargs="+", required=True)
-    runp.add_argument("--agent", default="noop", choices=["fixture-good", "fixture-bad", "codex", "noop"])
+    runp.add_argument("--agent", default="noop", choices=["fixture-good", "fixture-bad", "codex", "openai", "noop"])
     runp.add_argument("--model", help="model name for agents that support model selection")
     runp.add_argument(
         "--model-mode", choices=SUPPORTED_MODEL_MODES, help="model execution mode for agents that support it"
     )
     runp.add_argument("--codex-bin", help="path or command name for the Codex CLI binary")
+    runp.add_argument("--api-base", help="OpenAI-compatible API base URL for the openai agent")
+    runp.add_argument("--api-key", help="API key for the openai agent (default: lm-studio)")
+    runp.add_argument(
+        "--max-tokens",
+        type=int,
+        help="max_tokens for the openai agent (default 8192; raise for reasoning models)",
+    )
+    runp.add_argument(
+        "--request-timeout",
+        type=int,
+        help="HTTP timeout in seconds for the openai agent (default 600)",
+    )
     runp.add_argument(
         "--case-set", action="append", help="run only cases tagged with this set; repeat to include multiple sets"
     )
@@ -122,6 +134,10 @@ def main() -> None:
             args.judge_model,
             args.judge_model_mode,
             args.judge_codex_bin,
+            args.api_base,
+            args.api_key,
+            args.max_tokens,
+            args.request_timeout,
         )
         if args.record:
             print(record_run(root, run_dir, args.record_title))

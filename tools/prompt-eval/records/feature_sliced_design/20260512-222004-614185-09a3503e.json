@@ -1,0 +1,155 @@
+{
+  "analysis": [
+    {
+      "prompt": "fsd_guide.md",
+      "strengths": [
+        "Top average score in this run.",
+        "Best or tied score on 1/1 shared cases."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): fsd_greenfield_auth (77).",
+        "Failure tags: feature-slice-not-implemented x1, api-model-separation-not-demonstrated x1, public-api-not-verified x1.",
+        "Judge binary eval failures: model_owns_logic x1, api_segment_isolated x1, public_api_minimal x1."
+      ]
+    },
+    {
+      "prompt": "baseline.md",
+      "strengths": [
+        "Best or tied score on 0/1 shared cases."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): fsd_greenfield_auth (71).",
+        "Failure tags: incomplete_patch x1.",
+        "Judge binary eval failures: model_owns_logic x1, api_segment_isolated x1, public_api_minimal x1."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "fsd_greenfield_auth",
+      "case_sets": [
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "incomplete_patch"
+      ],
+      "judge": "The patch only wires the existing `LoginForm` into `AuthPage` and does not prove required model/api-layer implementation or minimal public API contract.",
+      "judge_binary_evals": [
+        {
+          "category": "segment_organization",
+          "evidence": "The patch only changes `auth-page` to render `<LoginForm />` and does not show `useLogin` or any async/loading/error handling in `model/`.",
+          "id": "model_owns_logic",
+          "passed": false,
+          "question": "Is async/mutation logic (fetch call, loading state, error handling) in model/ rather than directly in the UI component?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "No `api/` file is added or modified here, so this patch does not demonstrate a dedicated request function in `api/`.",
+          "id": "api_segment_isolated",
+          "passed": false,
+          "question": "Is the raw HTTP request function isolated in api/ and not mixed into model/ or ui/?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`src/features/login/index.ts` is imported from, but this patch does not show or verify what it exports, so minimal public API cannot be confirmed.",
+          "id": "public_api_minimal",
+          "passed": false,
+          "question": "Does index.ts export only the public contract (LoginForm, useLogin) without leaking internal functions?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "The change in the `pages/auth` UI imports only from `@/features/login` and does not add imports from `pages/` or `widgets/` into feature code.",
+          "id": "no_layer_violation",
+          "passed": true,
+          "question": "Does the feature avoid importing from pages/ or widgets/?"
+        }
+      ],
+      "prompt": "baseline.md",
+      "score": 71
+    },
+    {
+      "case_id": "fsd_greenfield_auth",
+      "case_sets": [
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "feature-slice-not-implemented",
+        "api-model-separation-not-demonstrated",
+        "public-api-not-verified"
+      ],
+      "judge": "The patch only wires `LoginForm` into the auth page, but does not show the required model/api slice implementation or public API validation.",
+      "judge_binary_evals": [
+        {
+          "category": "segment_organization",
+          "evidence": "The diff only changes `pages/auth/ui/auth-page.tsx` to render `<LoginForm />`; no `useLogin` hook or model-layer async/loading/error logic is shown.",
+          "id": "model_owns_logic",
+          "passed": false,
+          "question": "Is async/mutation logic (fetch call, loading state, error handling) in model/ rather than directly in the UI component?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "The patch does not add or modify any `api/login.ts` request function, so HTTP-call isolation inside `api/` is not demonstrated here.",
+          "id": "api_segment_isolated",
+          "passed": false,
+          "question": "Is the raw HTTP request function isolated in api/ and not mixed into model/ or ui/?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`index.ts` is not changed in the patch, so minimal-public-API compliance cannot be verified from this submission.",
+          "id": "public_api_minimal",
+          "passed": false,
+          "question": "Does index.ts export only the public contract (LoginForm, useLogin) without leaking internal functions?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "The page now imports from `@/features/login`, and this change does not introduce imports from `pages/` or `widgets/` inside the feature.",
+          "id": "no_layer_violation",
+          "passed": true,
+          "question": "Does the feature avoid importing from pages/ or widgets/?"
+        }
+      ],
+      "prompt": "fsd_guide.md",
+      "score": 77
+    }
+  ],
+  "metadata": {
+    "agent": "codex",
+    "case_sets": [
+      "fsd_greenfield"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "fast",
+    "model": "gpt-5.3-codex-spark",
+    "model_mode": "fast",
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/baseline.md",
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/fsd_guide.md"
+    ],
+    "run_id": "20260512-222004-614185-09a3503e",
+    "suite": "feature_sliced_design"
+  },
+  "prompts": [
+    {
+      "average": 77.0,
+      "cases": 1,
+      "prompt": "fsd_guide.md",
+      "sets": {
+        "fsd_greenfield": 77.0
+      }
+    },
+    {
+      "average": 71.0,
+      "cases": 1,
+      "prompt": "baseline.md",
+      "sets": {
+        "fsd_greenfield": 71.0
+      }
+    }
+  ],
+  "run_id": "20260512-222004-614185-09a3503e",
+  "suite": "feature_sliced_design",
+  "title": "FSD greenfield: baseline vs fsd_guide, Spark fast, subagent judge"
+}

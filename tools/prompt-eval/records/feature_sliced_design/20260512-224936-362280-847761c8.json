@@ -1,0 +1,332 @@
+{
+  "analysis": [
+    {
+      "prompt": "baseline.md",
+      "strengths": [
+        "Top average score in this run.",
+        "Best or tied score on 3/4 shared cases.",
+        "Strong cases (>=90): fsd_sibling_import, fsd_public_api_bypass, fsd_missing_index, fsd_greenfield_auth."
+      ],
+      "weaknesses": [
+        "Failure tags: dead_action_button_left_in_send_comment_feature x1.",
+        "Judge binary eval failures: removed_dead_code x1."
+      ]
+    },
+    {
+      "prompt": "fsd_guide.md",
+      "strengths": [
+        "Top average score in this run.",
+        "Best or tied score on 3/4 shared cases.",
+        "Strong cases (>=90): fsd_sibling_import, fsd_public_api_bypass, fsd_missing_index, fsd_greenfield_auth."
+      ],
+      "weaknesses": [
+        "Failure tags: dead_local_action_button_not_removed x1.",
+        "Judge binary eval failures: removed_dead_code x1."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "fsd_sibling_import",
+      "case_sets": [
+        "tuning",
+        "fsd_refactoring"
+      ],
+      "failure_tags": [
+        "dead_action_button_left_in_send_comment_feature"
+      ],
+      "judge": "The shared extraction and import redirection were implemented, but `send-comment` still retains local `ActionButton` in `send-button.tsx`, so scope is not fully cleaned.",
+      "judge_binary_evals": [
+        {
+          "category": "segment_organization",
+          "evidence": "The patch adds `src/shared/ui/action-button.tsx` and `src/shared/ui/index.ts` exporting `ActionButton`.",
+          "id": "extracted_to_shared",
+          "passed": true,
+          "question": "Did the agent create a proper shared/ui slice with the extracted ActionButton (action-button.tsx and an index.ts public API)?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "There is no change to `features/send-comment/ui/send-button.tsx`, so any existing `ActionButton` definition/re-export there remains.",
+          "id": "removed_dead_code",
+          "passed": false,
+          "question": "Did the agent eliminate the now-dead ActionButton definition inside features/send-comment instead of leaving it as a re-export shim?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`comment-form.tsx` now imports `ActionButton` from `@/shared/ui`; `like-button.tsx` in `like-post` was also updated away from cross-feature import.",
+          "id": "consumers_updated",
+          "passed": true,
+          "question": "Did the agent update all in-feature consumers (notably comment-form.tsx) to import ActionButton from the new shared location rather than from a stale local path?"
+        }
+      ],
+      "prompt": "baseline.md",
+      "score": 90
+    },
+    {
+      "case_id": "fsd_public_api_bypass",
+      "case_sets": [
+        "tuning",
+        "fsd_refactoring"
+      ],
+      "failure_tags": [],
+      "judge": "The patch correctly routes `normalizeProduct` through the entity public API and minimally extends that API with a named export while avoiding wildcard re-exports.",
+      "judge_binary_evals": [
+        {
+          "category": "public_api_correctness",
+          "evidence": "index.ts now has explicit named exports for `Product`, `ProductCard`, and `normalizeProduct`; no `export *` or additional re-exports were added.",
+          "id": "minimal_export_widening",
+          "passed": true,
+          "question": "Does the updated entities/product/index.ts export only the symbols actually consumed externally (Product type, ProductCard, normalizeProduct), without leaking unrelated internals or using export *?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Widget import was changed from `@/entities/product/model/product` to `@/entities/product` for both `normalizeProduct` and `ProductCard`.",
+          "id": "widget_uses_public_api",
+          "passed": true,
+          "question": "Does the widget import normalizeProduct from @/entities/product (the slice root) rather than any internal path like @/entities/product/model/...?"
+        }
+      ],
+      "prompt": "baseline.md",
+      "score": 98
+    },
+    {
+      "case_id": "fsd_missing_index",
+      "case_sets": [
+        "tuning",
+        "fsd_refactoring"
+      ],
+      "failure_tags": [],
+      "judge": "The patch correctly introduces a public API for `features/user-settings` and migrates the two listed external page consumers to it, with only a minor scope issue from adding an unrelated `AGENTS.md` file.",
+      "judge_binary_evals": [
+        {
+          "category": "public_api_correctness",
+          "evidence": "Both `src/pages/profile/ui/profile-page.tsx` and `src/pages/settings/ui/settings-page.tsx` were switched to import `SettingsForm` from `@/features/user-settings`.",
+          "id": "all_consumers_migrated",
+          "passed": true,
+          "question": "Did the agent update every page that imported from @/features/user-settings/ui/settings-form (both pages/settings and pages/profile), not only the one mentioned in the task?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "New `src/features/user-settings/index.ts` uses explicit named exports for `SettingsForm` and `useUserSettings`; no `export *` is used.",
+          "id": "explicit_public_api",
+          "passed": true,
+          "question": "Is the new features/user-settings/index.ts a minimal, explicit public API (named exports of the intended surface) rather than a blanket export *?"
+        }
+      ],
+      "prompt": "baseline.md",
+      "score": 98
+    },
+    {
+      "case_id": "fsd_greenfield_auth",
+      "case_sets": [
+        "fsd_greenfield"
+      ],
+      "failure_tags": [],
+      "judge": "The patch satisfies the required FSD segment placement and minimal public API; all requested pieces are implemented and wired into the auth page.",
+      "judge_binary_evals": [
+        {
+          "category": "segment_organization",
+          "evidence": "Async login call and loading/error state are implemented in `src/features/login/model/use-login.ts`; `LoginForm` only renders fields and calls `login`.",
+          "id": "model_owns_logic",
+          "passed": true,
+          "question": "Is async/mutation logic (fetch call, loading state, error handling) in model/ rather than directly in the UI component?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "`src/features/login/api/login.ts` contains `loginRequest` using `httpPost`, while model imports and calls it.",
+          "id": "api_segment_isolated",
+          "passed": true,
+          "question": "Is the raw HTTP request function isolated in api/ and not mixed into model/ or ui/?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`src/features/login/index.ts` exports only `LoginForm` and `useLogin`; no internal helper exports (`loginRequest`, payload/response types) are re-exported.",
+          "id": "public_api_minimal",
+          "passed": true,
+          "question": "Does index.ts export only the public contract (LoginForm, useLogin) without leaking internal functions?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Feature files import only local `../model` or shared (`httpPost` via shared API); page imports `LoginForm` from the feature.",
+          "id": "no_layer_violation",
+          "passed": true,
+          "question": "Does the feature avoid importing from pages/ or widgets/?"
+        }
+      ],
+      "prompt": "baseline.md",
+      "score": 100
+    },
+    {
+      "case_id": "fsd_sibling_import",
+      "case_sets": [
+        "tuning",
+        "fsd_refactoring"
+      ],
+      "failure_tags": [
+        "dead_local_action_button_not_removed"
+      ],
+      "judge": "The shared extraction is correctly added and consumers were repointed, but the old `send-comment` local ActionButton was not removed, leaving scope-control debt.",
+      "judge_binary_evals": [
+        {
+          "category": "segment_organization",
+          "evidence": "Added `src/shared/ui/action-button.tsx` and `src/shared/ui/index.ts` with `export { ActionButton } from './action-button';`.",
+          "id": "extracted_to_shared",
+          "passed": true,
+          "question": "Did the agent create a proper shared/ui slice with the extracted ActionButton (action-button.tsx and an index.ts public API)?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "The patch updates imports but does not touch/remove `features/send-comment/ui/send-button.tsx`, so a local ActionButton definition/re-export could still remain and be dead code.",
+          "id": "removed_dead_code",
+          "passed": false,
+          "question": "Did the agent eliminate the now-dead ActionButton definition inside features/send-comment instead of leaving it as a re-export shim?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`src/features/send-comment/ui/comment-form.tsx` now imports `ActionButton` from `@/shared/ui`.",
+          "id": "consumers_updated",
+          "passed": true,
+          "question": "Did the agent update all in-feature consumers (notably comment-form.tsx) to import ActionButton from the new shared location rather than from a stale local path?"
+        }
+      ],
+      "prompt": "fsd_guide.md",
+      "score": 90
+    },
+    {
+      "case_id": "fsd_public_api_bypass",
+      "case_sets": [
+        "tuning",
+        "fsd_refactoring"
+      ],
+      "failure_tags": [],
+      "judge": "The patch correctly exposes `normalizeProduct` via the product slice public API and updates the widget to consume it from that API, but adds an extra AGENTS.md file outside the direct fix.",
+      "judge_binary_evals": [
+        {
+          "category": "public_api_correctness",
+          "evidence": "index.ts now re-exports exactly `Product`, `ProductCard`, and `normalizeProduct` with named exports and no `export *`.",
+          "id": "minimal_export_widening",
+          "passed": true,
+          "question": "Does the updated entities/product/index.ts export only the symbols actually consumed externally (Product type, ProductCard, normalizeProduct), without leaking unrelated internals or using export *?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "The widget switched from `@/entities/product/model/product` to `@/entities/product` and keeps imports consolidated to the slice root.",
+          "id": "widget_uses_public_api",
+          "passed": true,
+          "question": "Does the widget import normalizeProduct from @/entities/product (the slice root) rather than any internal path like @/entities/product/model/...?"
+        }
+      ],
+      "prompt": "fsd_guide.md",
+      "score": 99
+    },
+    {
+      "case_id": "fsd_missing_index",
+      "case_sets": [
+        "tuning",
+        "fsd_refactoring"
+      ],
+      "failure_tags": [],
+      "judge": "The patch satisfies the migration intent by introducing a minimal feature public API and rewiring both consumer pages to import through it.",
+      "judge_binary_evals": [
+        {
+          "category": "public_api_correctness",
+          "evidence": "Both modified page imports were updated to '@/features/user-settings': pages/profile/ui/profile-page.tsx and pages/settings/ui/settings-page.tsx.",
+          "id": "all_consumers_migrated",
+          "passed": true,
+          "question": "Did the agent update every page that imported from @/features/user-settings/ui/settings-form (both pages/settings and pages/profile), not only the one mentioned in the task?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "index.ts exports named members with explicit re-exports: SettingsForm and useUserSettings, and does not use export *.",
+          "id": "explicit_public_api",
+          "passed": true,
+          "question": "Is the new features/user-settings/index.ts a minimal, explicit public API (named exports of the intended surface) rather than a blanket export *?"
+        }
+      ],
+      "prompt": "fsd_guide.md",
+      "score": 97
+    },
+    {
+      "case_id": "fsd_greenfield_auth",
+      "case_sets": [
+        "fsd_greenfield"
+      ],
+      "failure_tags": [],
+      "judge": "The patch is structurally compliant with the requested FSD slice layout, with clean layering, isolated API logic, and a minimal feature public API.",
+      "judge_binary_evals": [
+        {
+          "category": "segment_organization",
+          "evidence": "The UI delegates submission to `useLogin().execute`, while `use-login.ts` owns `isLoading`, `error`, and try/catch handling around the request.",
+          "id": "model_owns_logic",
+          "passed": true,
+          "question": "Is async/mutation logic (fetch call, loading state, error handling) in model/ rather than directly in the UI component?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "`loginRequest` is the only raw API call in `api/login.ts`, and `model/use-login.ts` imports and calls it instead of issuing HTTP directly.",
+          "id": "api_segment_isolated",
+          "passed": true,
+          "question": "Is the raw HTTP request function isolated in api/ and not mixed into model/ or ui/?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`src/features/login/index.ts` exports only `LoginForm` and `useLogin`; no internal helpers such as `loginRequest` are re-exported.",
+          "id": "public_api_minimal",
+          "passed": true,
+          "question": "Does index.ts export only the public contract (LoginForm, useLogin) without leaking internal functions?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Feature files (`api`, `model`, `ui`) import only shared/ or feature-local modules, and the page imports from `@/features/login` only.",
+          "id": "no_layer_violation",
+          "passed": true,
+          "question": "Does the feature avoid importing from pages/ or widgets/?"
+        }
+      ],
+      "prompt": "fsd_guide.md",
+      "score": 100
+    }
+  ],
+  "metadata": {
+    "agent": "codex",
+    "case_sets": [],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "fast",
+    "model": "gpt-5.3-codex-spark",
+    "model_mode": "fast",
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/baseline.md",
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/fsd_guide.md"
+    ],
+    "run_id": "20260512-224936-362280-847761c8",
+    "suite": "feature_sliced_design"
+  },
+  "prompts": [
+    {
+      "average": 96.5,
+      "cases": 4,
+      "prompt": "baseline.md",
+      "sets": {
+        "fsd_greenfield": 100.0,
+        "fsd_refactoring": 95.3,
+        "tuning": 95.3
+      }
+    },
+    {
+      "average": 96.5,
+      "cases": 4,
+      "prompt": "fsd_guide.md",
+      "sets": {
+        "fsd_greenfield": 100.0,
+        "fsd_refactoring": 95.3,
+        "tuning": 95.3
+      }
+    }
+  ],
+  "run_id": "20260512-224936-362280-847761c8",
+  "suite": "feature_sliced_design",
+  "title": "FSD full suite, baseline vs fsd_guide, Spark fast, judged"
+}
