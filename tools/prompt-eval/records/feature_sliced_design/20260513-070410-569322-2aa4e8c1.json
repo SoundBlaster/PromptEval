@@ -1,0 +1,876 @@
+{
+  "analysis": [
+    {
+      "prompt": "fsd_guide.md",
+      "strengths": [
+        "Top average score in this run.",
+        "Best or tied score on 2/4 shared cases.",
+        "Strong cases (>=90): fsd_greenfield_notes, fsd_layer_choice_navbar."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): fsd_greenfield_catalog (75), fsd_greenfield_todos (75).",
+        "Failure tags: missing-feature-slice-naming x1, internal-cross-slice-imports x1, public-index-export-star x1, public_api_cross_import_violation x1, segment_naming_inconsistency x1.",
+        "Judge binary eval failures: public_api_per_slice x2, domain_slices_named x1, segments_named_correctly x1, entity_owns_data x1."
+      ]
+    },
+    {
+      "prompt": "fsd_terse.md",
+      "strengths": [
+        "Best or tied score on 2/4 shared cases.",
+        "Strong cases (>=90): fsd_layer_choice_navbar."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): fsd_greenfield_catalog (80), fsd_greenfield_todos (75), fsd_greenfield_notes (70).",
+        "Failure tags: cross_slice_internal_path_imports x1, feature_per_action x1, public_api_per_slice x1, missing_edit_feature_slice x1, cross_slice_internal_imports x1.",
+        "Judge binary eval failures: public_api_per_slice x3, feature_per_action x2, entity_owns_data x1."
+      ]
+    },
+    {
+      "prompt": "fsd_minimal.md",
+      "strengths": [
+        "Best or tied score on 2/4 shared cases.",
+        "Strong cases (>=90): fsd_layer_choice_navbar."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): fsd_greenfield_catalog (70), fsd_greenfield_notes (61).",
+        "Failure tags: internal_slice_imports x2, missing_feature_slice_verb x1, technical_segment_hooks x1, public_api_internal_import_violation x1, missing_features_per_action x1.",
+        "Judge binary eval failures: public_api_per_slice x3, domain_slices_named x1, segments_named_correctly x1, feature_per_action x1, entity_owns_data x1."
+      ]
+    },
+    {
+      "prompt": "baseline.md",
+      "strengths": [
+        "Best or tied score on 1/4 shared cases.",
+        "Strong cases (>=90): fsd_layer_choice_navbar."
+      ],
+      "weaknesses": [
+        "Weak cases (<85): fsd_greenfield_catalog (58), fsd_greenfield_todos (60).",
+        "Failure tags: missing_feature_slice_verb_named x1, missing_entity_slice_index_exports x1, internal_segment_imports x1, invalid_segment_name_hooks x1, non_fsd_public_api_paths x1.",
+        "Judge binary eval failures: public_api_per_slice x3, segments_named_correctly x2, domain_slices_named x1."
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "fsd_greenfield_catalog",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "missing_feature_slice_verb_named",
+        "missing_entity_slice_index_exports",
+        "internal_segment_imports",
+        "invalid_segment_name_hooks"
+      ],
+      "judge": "The patch uses multiple FSD layers and keeps cart state in `entities/cart`, but it misses feature-level and public API conventions and uses non-FSD segment naming/import patterns in entity slices.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Introduced `src/entities/` and `src/pages/` and `src/shared/` directories with slices under them.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Entity slices are domain-named (`product`, `cart`), but there is no feature slice using verb-phrase naming; only pages/shared/entities are present.",
+          "id": "domain_slices_named",
+          "passed": false,
+          "question": "Are slices named by business meaning \u2014 features as verb phrases (add-to-cart, ...) and entities as nouns (product, cart, ...) \u2014 rather than as technical groupings?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Only `pages/catalog-page` and `shared/ui/cart-header` expose `index.ts`; `entities/cart` and `entities/product` do not, and imports use internal paths like `@entities/product/api` and `@entities/cart/hooks/useCart`.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "`src/entities/cart/hooks/useCart.ts` uses a `hooks` segment, and `src/entities/product` has flat `api.ts`/`model.ts` without `api/` and `model/` segment folders.",
+          "id": "segments_named_correctly",
+          "passed": false,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Cart state hook and localStorage logic are implemented in `src/entities/cart/hooks/useCart.ts` and `src/entities/cart/lib/storage.ts`.",
+          "id": "cart_in_entity_layer",
+          "passed": true,
+          "question": "Does cart state (the useCart hook and storage logic) live in an entity slice (entities/cart) rather than inside a feature, page, or global hooks folder?"
+        }
+      ],
+      "prompt": "baseline.md",
+      "score": 58
+    },
+    {
+      "case_id": "fsd_greenfield_todos",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "non_fsd_public_api_paths",
+        "technical_segment_name_hooks"
+      ],
+      "judge": "The patch uses FSD layers and separate action features, but public APIs are inconsistent and segment naming is partially non-FSD due to `shared/hooks`.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Added `src/entities`, `src/features`, `src/pages`, and `src/shared`, so the structure is layer-based rather than a single flat group.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "There are separate feature slices: `features/addTodo`, `features/toggleTodo`, and `features/deleteTodo`.",
+          "id": "feature_per_action",
+          "passed": true,
+          "question": "Is each distinct user action (add, toggle, delete) modeled as its own features/<verb> slice rather than lumped together or hidden inside an entity?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`features/*` have segment indices, but cross-slice imports use internal paths like `@/entities/todo/model` and `@/shared/hooks/useTodos`, and there is no shown public entry for entity/shared slices.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "`shared/hooks` is a technical segment name outside the expected FSD set; other segments are mostly fine.",
+          "id": "segments_named_correctly",
+          "passed": false,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        }
+      ],
+      "prompt": "baseline.md",
+      "score": 60
+    },
+    {
+      "case_id": "fsd_greenfield_notes",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "public_api_internal_imports"
+      ],
+      "judge": "The patch mostly follows FSD layering and action slicing, but misses the public API import rule in one cross-slice import.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Introduced `src/entities/note`, `src/features/*`, `src/pages/notes`, and `src/main.tsx` usage; no flat feature groups were used.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (entities/, features/, pages/, widgets/, shared/) instead of flat /components, /hooks, /services?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "There are separate slices `createNote`, `editNote`, and `deleteNote`; each has dedicated UI components under its own slice.",
+          "id": "feature_per_action",
+          "passed": true,
+          "question": "Is each distinct user action (create, edit, delete) modeled as its own features/<verb> slice rather than lumped together or hidden inside entities/note?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "`entities/note` owns `Note` model, `useNotes` state/persistence logic, and `NoteListItem` UI.",
+          "id": "entity_owns_data",
+          "passed": true,
+          "question": "Does entities/note own the Note type, the notes collection state (with localStorage persistence), and the list-item presentation, while features only handle user actions?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Slices have `index.ts`, but `NotesPage` imports `NoteListItem` from `@entities/note/ui` instead of `@entities/note`, which is an internal-segment import.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Used `api/`, `model/`, and `ui/` segment names consistently.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        }
+      ],
+      "prompt": "baseline.md",
+      "score": 89
+    },
+    {
+      "case_id": "fsd_layer_choice_navbar",
+      "case_sets": [
+        "fsd_layer_choice",
+        "fsd_refactoring"
+      ],
+      "failure_tags": [],
+      "judge": "The patch correctly introduces a single `AppHeader` widget slice and reuses it from both pages via its public API without duplicating header composition logic.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Added `src/widgets/app-header/index.ts` and `src/widgets/app-header/ui/app-header.tsx` that define and export `AppHeader`.",
+          "id": "widget_slice_created",
+          "passed": true,
+          "question": "Did the agent create a widgets/<name> slice (e.g. widgets/app-header) that owns the composite header rendering?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Both pages now render `<AppHeader />`, and the previous inline composition in `dashboard-page.tsx` was removed.",
+          "id": "no_duplication",
+          "passed": true,
+          "question": "Is the header composition defined in exactly one place, not duplicated across pages/dashboard and pages/reports?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "The widget imports and reuses `useCurrentUser`, `UserBadge`, `NotificationsIcon`, and `LogoutButton` from the existing slice/public module paths.",
+          "id": "widget_composes_existing",
+          "passed": true,
+          "question": "Does the new widget compose the existing slices via their public APIs (@/entities/user, @/features/show-notifications, @/features/logout) rather than re-implementing user/notification/logout logic?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Both `dashboard-page.tsx` and `reports-page.tsx` import `AppHeader` from `@/widgets/app-header`.",
+          "id": "pages_use_widget_via_public_api",
+          "passed": true,
+          "question": "Do both pages import the header through @/widgets/<name> (the slice public API), not through internal widget paths?"
+        }
+      ],
+      "prompt": "baseline.md",
+      "score": 100
+    },
+    {
+      "case_id": "fsd_greenfield_catalog",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "missing_feature_slice_verb",
+        "internal_slice_imports",
+        "technical_segment_hooks"
+      ],
+      "judge": "The patch adopts FSD layers and keeps cart state in `entities/cart`, but it misses a feature-level business slice and violates public API discipline by importing internal slice segments directly.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Added `src/entities/*`, `src/pages/*`, and `src/shared/*`, so code is not in flat technical folders.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Entity slices are domain-named (`product`, `cart`), but there is no feature slice using a verb phrase and logic is assembled directly in a page-level UI.",
+          "id": "domain_slices_named",
+          "passed": false,
+          "question": "Are slices named by business meaning \u2014 features as verb phrases (add-to-cart, ...) and entities as nouns (product, cart, ...) \u2014 rather than as technical groupings?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Slicable `index.ts` files exist, but imports use internal paths like `@entities/product/model`, `@entities/product/api`, and `@entities/cart/hooks` instead of slice roots.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "The cart entity introduces a `hooks/` segment, which is a technical segment name not in the accepted FSD list.",
+          "id": "segments_named_correctly",
+          "passed": false,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Cart hook and persistence logic are both implemented under `src/entities/cart` (`hooks/` and `lib/`).",
+          "id": "cart_in_entity_layer",
+          "passed": true,
+          "question": "Does cart state (the useCart hook and storage logic) live in an entity slice (entities/cart) rather than inside a feature, page, or global hooks folder?"
+        }
+      ],
+      "prompt": "fsd_minimal.md",
+      "score": 70
+    },
+    {
+      "case_id": "fsd_greenfield_todos",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "public_api_internal_import_violation"
+      ],
+      "judge": "The patch largely follows FSD layer structure and action-per-feature separation, but cross-slice imports violate public API rules by reaching into internal files.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Introduced src/entities/todo, src/features/{add-todo,delete-todo,toggle-todo}, src/pages/todo-list, and src/shared/store, so code is in multiple FSD layers rather than flat technical folders.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "There are three separate feature slices: add-todo, delete-todo, and toggle-todo, each isolated in its own folder.",
+          "id": "feature_per_action",
+          "passed": true,
+          "question": "Is each distinct user action (add, toggle, delete) modeled as its own features/<verb> slice rather than lumped together or hidden inside an entity?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Slices have index.ts, but page imports `@entities/todo/ui/TodoItem` and `@shared/store/useTodos` (internal paths) instead of the required slice roots like `@entities/todo` and `@shared/store`.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Feature/entity/page/shared segments use `api/`, `model/`, `ui/`, and public `index.ts`; no forbidden segment names like components/hooks/utils/services are used.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        }
+      ],
+      "prompt": "fsd_minimal.md",
+      "score": 88
+    },
+    {
+      "case_id": "fsd_greenfield_notes",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "missing_features_per_action",
+        "internal_slice_imports"
+      ],
+      "judge": "The patch is partially FSD-structured and wires `main.tsx`, but it violates key FSD conventions by omitting verb-based feature slices and leaking cross-slice imports through internal paths.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Patch creates `src/entities/note`, `src/pages/notes`, and `src/widgets/...`, so multiple FSD layers are used and no flat `/components`/`/hooks`/`/services` folders were introduced.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (entities/, features/, pages/, widgets/, shared/) instead of flat /components, /hooks, /services?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "There is no `features/` layer content; create/edit/delete logic is packed into `useNotes` in `entities/note` and UI button logic in `widgets/editor`.",
+          "id": "feature_per_action",
+          "passed": false,
+          "question": "Is each distinct user action (create, edit, delete) modeled as its own features/<verb> slice rather than lumped together or hidden inside entities/note?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "`entities/note` owns `Note`, state, and persistence, but list-item presentation (`NoteItem`) is implemented in `widgets/sidebar/ui`, and action behavior is also consumed directly from the entity rather than isolated action features.",
+          "id": "entity_owns_data",
+          "passed": false,
+          "question": "Does entities/note own the Note type, the notes collection state (with localStorage persistence), and the list-item presentation, while features only handle user actions?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Cross-slice imports include `@widgets/editor/ui/CreateButton` and `@widgets/sidebar/ui/NoteItem`, which bypass slice-level public entry points; imports should go through `@widgets/editor` and `@widgets/sidebar`.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Implemented segment folders use `ui/` (and no `components/`, `hooks/`, `utils/`, or `services/`), matching acceptable FSD segment conventions.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        }
+      ],
+      "prompt": "fsd_minimal.md",
+      "score": 61
+    },
+    {
+      "case_id": "fsd_layer_choice_navbar",
+      "case_sets": [
+        "fsd_layer_choice",
+        "fsd_refactoring"
+      ],
+      "failure_tags": [],
+      "judge": "The patch correctly centralizes header composition in a new `app-header` widget and uses its public API from both pages without duplicating logic.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Added `src/widgets/app-header/` with `index.ts` and `ui/app-header.tsx` containing the header composition.",
+          "id": "widget_slice_created",
+          "passed": true,
+          "question": "Did the agent create a widgets/<name> slice (e.g. widgets/app-header) that owns the composite header rendering?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Only `AppHeader` in the new widget composes header elements; both pages render `<AppHeader />` instead of duplicated inline composition.",
+          "id": "no_duplication",
+          "passed": true,
+          "question": "Is the header composition defined in exactly one place, not duplicated across pages/dashboard and pages/reports?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "The widget directly imports and uses `useCurrentUser`/`UserBadge`, `NotificationsIcon`, and `LogoutButton` from those feature/entity public entry points.",
+          "id": "widget_composes_existing",
+          "passed": true,
+          "question": "Does the new widget compose the existing slices via their public APIs (@/entities/user, @/features/show-notifications, @/features/logout) rather than re-implementing user/notification/logout logic?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Both `dashboard-page.tsx` and `reports-page.tsx` import `AppHeader` from `@/widgets/app-header`.",
+          "id": "pages_use_widget_via_public_api",
+          "passed": true,
+          "question": "Do both pages import the header through @/widgets/<name> (the slice public API), not through internal widget paths?"
+        }
+      ],
+      "prompt": "fsd_minimal.md",
+      "score": 100
+    },
+    {
+      "case_id": "fsd_greenfield_catalog",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "cross_slice_internal_path_imports"
+      ],
+      "judge": "The patch follows FSD layering and naming well, with entities/features/pages/widgets present, but fails public API compliance due to many cross-slice internal-path imports.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Uses src/entities/cart, src/entities/product, src/features/add-to-cart, src/pages/catalog, and src/widgets/header.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Entity slices are `product` and `cart` (nouns); feature slice is `add-to-cart` (verb phrase).",
+          "id": "domain_slices_named",
+          "passed": true,
+          "question": "Are slices named by business meaning \u2014 features as verb phrases (add-to-cart, ...) and entities as nouns (product, cart, ...) \u2014 rather than as technical groupings?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Although index.ts files exist, imports use internal paths like `@/entities/product/ui/ProductRow`, `@/features/add-to-cart/ui/AddToCartButton`, `@/entities/cart/model`, and `@/pages/catalog/page` instead of slice roots.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Created segments are `ui/` and `model/` only, matching allowed FSD names.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Cart state hook and localStorage logic are implemented in `src/entities/cart/model/index.ts`.",
+          "id": "cart_in_entity_layer",
+          "passed": true,
+          "question": "Does cart state (the useCart hook and storage logic) live in an entity slice (entities/cart) rather than inside a feature, page, or global hooks folder?"
+        }
+      ],
+      "prompt": "fsd_terse.md",
+      "score": 80
+    },
+    {
+      "case_id": "fsd_greenfield_todos",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "feature_per_action",
+        "public_api_per_slice"
+      ],
+      "judge": "The patch follows FSD layer folders but does not actually route actions through separate feature slices and violates public API usage by importing entity internals directly.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Created files under src/entities, src/features, src/pages, and src/shared, satisfying the existence of multiple FSD layers.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Although add-todo/delete-todo/toggle-todo index files exist, the actual add/toggle/delete logic is implemented in shared/model/TodosContext and the page calls useTodos directly; no feature-level action composition is used.",
+          "id": "feature_per_action",
+          "passed": false,
+          "question": "Is each distinct user action (add, toggle, delete) modeled as its own features/<verb> slice rather than lumped together or hidden inside an entity?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Cross-slice import in the page is `@/entities/todo/ui/TodoItem` instead of `@/entities/todo`, and feature slices have only index exports with no visible feature UI implementations in this patch, while entities lack a public root index export.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "The added code uses `entities/todo/ui` and `shared/model` plus feature indices expecting `ui`; no technical segment names like components/hooks/utils/services were introduced.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        }
+      ],
+      "prompt": "fsd_terse.md",
+      "score": 75
+    },
+    {
+      "case_id": "fsd_greenfield_notes",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "missing_edit_feature_slice",
+        "cross_slice_internal_imports",
+        "entity_data_not_presentation_owner",
+        "invalid_page_barrel_export"
+      ],
+      "judge": "The patch applies a mostly valid FSD-like structure but violates action-slice separation for edit, leaks cross-slice coupling through internal imports, and has a broken `pages/notes` barrel export.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Added `src/entities/`, `src/features/` (add-note/delete-note), `src/pages/notes/`, and `src/widgets/note-list/`, indicating real FSD layer structure.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (entities/, features/, pages/, widgets/, shared/) instead of flat /components, /hooks, /services?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Create/delete each have separate feature slices, but edit (`updateNote` usage) is handled directly in `pages/notes/ui/Editor.tsx`, not a `features/edit-note` slice.",
+          "id": "feature_per_action",
+          "passed": false,
+          "question": "Is each distinct user action (create, edit, delete) modeled as its own features/<verb> slice rather than lumped together or hidden inside entities/note?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "`entities/note` owns `Note` and persistence/state in `api/useNotes`, but list-item rendering is in `widgets/note-list/ui/NoteList.tsx`, not an entity-owned presentation slice.",
+          "id": "entity_owns_data",
+          "passed": false,
+          "question": "Does entities/note own the Note type, the notes collection state (with localStorage persistence), and the list-item presentation, while features only handle user actions?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Many imports use internal paths such as `@/widgets/note-list/ui/NoteList`, `@/features/delete-note/ui/DeleteButton`, and `@/entities/note/api/useNotes`; also `src/pages/notes/index.ts` re-exports from `./index`, creating a problematic self barrel.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Created segment folders are only `api/`, `model/`, `ui/` under slices, matching allowed FSD segment names.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        }
+      ],
+      "prompt": "fsd_terse.md",
+      "score": 70
+    },
+    {
+      "case_id": "fsd_layer_choice_navbar",
+      "case_sets": [
+        "fsd_layer_choice",
+        "fsd_refactoring"
+      ],
+      "failure_tags": [],
+      "judge": "The patch correctly introduces a reusable `widgets/app-header` slice and updates both pages to use it via its public API without duplicating header composition.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Added `src/widgets/app-header/index.ts` plus `src/widgets/app-header/ui/app-header.tsx` that encapsulates the header rendering.",
+          "id": "widget_slice_created",
+          "passed": true,
+          "question": "Did the agent create a widgets/<name> slice (e.g. widgets/app-header) that owns the composite header rendering?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Both pages now render `<AppHeader />`; the header logic exists only inside the widget and is not duplicated in each page.",
+          "id": "no_duplication",
+          "passed": true,
+          "question": "Is the header composition defined in exactly one place, not duplicated across pages/dashboard and pages/reports?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Widget imports and reuses `useCurrentUser`, `UserBadge`, `NotificationsIcon`, and `LogoutButton` from their public slice APIs; no custom user/notification/logout logic added.",
+          "id": "widget_composes_existing",
+          "passed": true,
+          "question": "Does the new widget compose the existing slices via their public APIs (@/entities/user, @/features/show-notifications, @/features/logout) rather than re-implementing user/notification/logout logic?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Both `dashboard-page.tsx` and `reports-page.tsx` import `AppHeader` from `@/widgets/app-header` and use it directly.",
+          "id": "pages_use_widget_via_public_api",
+          "passed": true,
+          "question": "Do both pages import the header through @/widgets/<name> (the slice public API), not through internal widget paths?"
+        }
+      ],
+      "prompt": "fsd_terse.md",
+      "score": 100
+    },
+    {
+      "case_id": "fsd_greenfield_catalog",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "missing-feature-slice-naming",
+        "internal-cross-slice-imports",
+        "public-index-export-star"
+      ],
+      "judge": "The patch follows FSD layers and segment naming mostly well, but it violates public API usage by importing internal slice paths and using export-star in slice public APIs, and it introduces no verb-style feature slice.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Added `src/entities/` and `src/pages/` with domain slices, so FSD layering is used instead of a flat technical layout.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Slice names include entity nouns (`product`, `cart`), but no feature slice is introduced (e.g., `add-to-cart`), so the feature-layer naming pattern is absent.",
+          "id": "domain_slices_named",
+          "passed": false,
+          "question": "Are slices named by business meaning \u2014 features as verb phrases (add-to-cart, ...) and entities as nouns (product, cart, ...) \u2014 rather than as technical groupings?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`pages/catalog/ui/CatalogPage.tsx` imports `@/entities/product/model/types` and `@/entities/product/api` directly instead of `@/entities/product`; `entities/cart/lib/storage.ts` imports `@/entities/cart/model/useCart`. Also both index files use `export *`, which is disallowed by the stated guide.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Used `ui`, `model`, and `lib` segments; no `components/`, `hooks/`, `utils/`, or `services/` segment folders are present.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "Cart hook and persistence logic are both in `src/entities/cart/model` and `src/entities/cart/lib`.",
+          "id": "cart_in_entity_layer",
+          "passed": true,
+          "question": "Does cart state (the useCart hook and storage logic) live in an entity slice (entities/cart) rather than inside a feature, page, or global hooks folder?"
+        }
+      ],
+      "prompt": "fsd_guide.md",
+      "score": 75
+    },
+    {
+      "case_id": "fsd_greenfield_todos",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "public_api_cross_import_violation",
+        "segment_naming_inconsistency"
+      ],
+      "judge": "The patch mostly follows FSD layering and action slices, but violates strict public API import boundaries and only partially adheres to segment layout conventions.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Code is organized under `src/entities`, `src/features`, and `src/pages`, so it uses multiple FSD layers rather than flat technical directories.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "There are distinct slices for `features/add-todo`, `features/toggle-todo`, and `features/delete-todo`, each providing action-specific hooks/components.",
+          "id": "feature_per_action",
+          "passed": true,
+          "question": "Is each distinct user action (add, toggle, delete) modeled as its own features/<verb> slice rather than lumped together or hidden inside an entity?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "`src/features/delete-todo` and `src/features/toggle-todo` expose `index.ts`, but `src/features/add-todo/ui/AddTodoForm.tsx` imports `@/features/add-todo/model` directly instead of `@/features/add-todo`, so not all cross-slice imports go through the slice root.",
+          "id": "public_api_per_slice",
+          "passed": false,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "`features/delete-todo/model.ts` and `features/toggle-todo/model.ts` use a root `model.ts` file instead of a `model/` segment directory, so segment layout is not fully aligned with the requested convention.",
+          "id": "segments_named_correctly",
+          "passed": false,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        }
+      ],
+      "prompt": "fsd_guide.md",
+      "score": 75
+    },
+    {
+      "case_id": "fsd_greenfield_notes",
+      "case_sets": [
+        "fsd_greenfield_pure",
+        "fsd_greenfield"
+      ],
+      "failure_tags": [
+        "entity_presentation_not_in_entity_slice"
+      ],
+      "judge": "The patch mostly follows FSD layering and naming, but misses placing the list/editor presentation inside the entity slice and keeps UI composition in the page.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "The patch adds code under `src/entities/note`, `src/features/*`, and `src/pages/notes`, so multiple FSD layers are used instead of flat technical folders.",
+          "id": "fsd_layers_used",
+          "passed": true,
+          "question": "Did the agent organise the code into FSD layers (entities/, features/, pages/, widgets/, shared/) instead of flat /components, /hooks, /services?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "There are separate slices `features/add-note`, `features/edit-note`, and `features/delete-note` (each with its own index file).",
+          "id": "feature_per_action",
+          "passed": true,
+          "question": "Is each distinct user action (create, edit, delete) modeled as its own features/<verb> slice rather than lumped together or hidden inside entities/note?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "`entities/note` defines `Note` and `useNotes` (including persistence), but the list and editor UIs are rendered directly in the page; `entities/note/ui/list.tsx` and `editor.tsx` only contain prop interfaces, not actual list-item rendering.",
+          "id": "entity_owns_data",
+          "passed": false,
+          "question": "Does entities/note own the Note type, the notes collection state (with localStorage persistence), and the list-item presentation, while features only handle user actions?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Each created feature slice and entity slice has an `index.ts` export, and page-level imports reference slice roots like `@/features/add-note` and `@/entities/note`.",
+          "id": "public_api_per_slice",
+          "passed": true,
+          "question": "Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?"
+        },
+        {
+          "category": "segment_organization",
+          "evidence": "Segments used are `ui/`, `model/`, and no `components/`, `hooks/`, `utils/`, or `services/` directories are introduced.",
+          "id": "segments_named_correctly",
+          "passed": true,
+          "question": "Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?"
+        }
+      ],
+      "prompt": "fsd_guide.md",
+      "score": 90
+    },
+    {
+      "case_id": "fsd_layer_choice_navbar",
+      "case_sets": [
+        "fsd_layer_choice",
+        "fsd_refactoring"
+      ],
+      "failure_tags": [],
+      "judge": "Patch fully satisfies the requested migration by introducing a single widget slice for the header and wiring both pages to it via the widget public API without duplicating composition.",
+      "judge_binary_evals": [
+        {
+          "category": "layer_compliance",
+          "evidence": "Introduced `src/widgets/app-header/index.ts` and `src/widgets/app-header/ui/app-header.tsx` with `AppHeader` rendering the header structure.",
+          "id": "widget_slice_created",
+          "passed": true,
+          "question": "Did the agent create a widgets/<name> slice (e.g. widgets/app-header) that owns the composite header rendering?"
+        },
+        {
+          "category": "scope_control",
+          "evidence": "Both pages now render `<AppHeader />`; dashboard no longer has inline composition, and reports imports/uses the same component.",
+          "id": "no_duplication",
+          "passed": true,
+          "question": "Is the header composition defined in exactly one place, not duplicated across pages/dashboard and pages/reports?"
+        },
+        {
+          "category": "layer_compliance",
+          "evidence": "The widget imports `useCurrentUser` and `UserBadge` from `@/entities/user`, and `LogoutButton`/`NotificationsIcon` from `@/features/logout` and `@/features/show-notifications`.",
+          "id": "widget_composes_existing",
+          "passed": true,
+          "question": "Does the new widget compose the existing slices via their public APIs (@/entities/user, @/features/show-notifications, @/features/logout) rather than re-implementing user/notification/logout logic?"
+        },
+        {
+          "category": "public_api_correctness",
+          "evidence": "Both `dashboard-page.tsx` and `reports-page.tsx` import only from `@/widgets/app-header`.",
+          "id": "pages_use_widget_via_public_api",
+          "passed": true,
+          "question": "Do both pages import the header through @/widgets/<name> (the slice public API), not through internal widget paths?"
+        }
+      ],
+      "prompt": "fsd_guide.md",
+      "score": 100
+    }
+  ],
+  "metadata": {
+    "agent": "openai",
+    "case_sets": [
+      "fsd_greenfield_pure",
+      "fsd_layer_choice"
+    ],
+    "codex_bin": null,
+    "judge": "subagent",
+    "judge_codex_bin": null,
+    "judge_model": "gpt-5.3-codex-spark",
+    "judge_model_mode": "fast",
+    "model": "openai/gpt-oss-20b",
+    "model_mode": null,
+    "prompts": [
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/baseline.md",
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/fsd_minimal.md",
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/fsd_terse.md",
+      "/Users/egor/Development/GitHub/PromptEval/tools/prompt-eval/prompts/feature_sliced_design/fsd_guide.md"
+    ],
+    "run_id": "20260513-070410-569322-2aa4e8c1",
+    "suite": "feature_sliced_design"
+  },
+  "prompts": [
+    {
+      "average": 85.0,
+      "cases": 4,
+      "prompt": "fsd_guide.md",
+      "sets": {
+        "fsd_greenfield": 80.0,
+        "fsd_greenfield_pure": 80.0,
+        "fsd_layer_choice": 100.0,
+        "fsd_refactoring": 100.0
+      }
+    },
+    {
+      "average": 81.2,
+      "cases": 4,
+      "prompt": "fsd_terse.md",
+      "sets": {
+        "fsd_greenfield": 75.0,
+        "fsd_greenfield_pure": 75.0,
+        "fsd_layer_choice": 100.0,
+        "fsd_refactoring": 100.0
+      }
+    },
+    {
+      "average": 79.8,
+      "cases": 4,
+      "prompt": "fsd_minimal.md",
+      "sets": {
+        "fsd_greenfield": 73.0,
+        "fsd_greenfield_pure": 73.0,
+        "fsd_layer_choice": 100.0,
+        "fsd_refactoring": 100.0
+      }
+    },
+    {
+      "average": 76.8,
+      "cases": 4,
+      "prompt": "baseline.md",
+      "sets": {
+        "fsd_greenfield": 69.0,
+        "fsd_greenfield_pure": 69.0,
+        "fsd_layer_choice": 100.0,
+        "fsd_refactoring": 100.0
+      }
+    }
+  ],
+  "run_id": "20260513-070410-569322-2aa4e8c1",
+  "suite": "feature_sliced_design",
+  "title": "FSD pure-greenfield (3 cases) + layer-choice ladder, gpt-oss-20b, Spark judge"
+}

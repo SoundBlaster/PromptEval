@@ -10,3 +10,9 @@ cases:
   sets: [fsd_greenfield]
 - path: fsd_greenfield_catalog.yaml
   sets: [fsd_greenfield_pure, fsd_greenfield]
+- path: fsd_greenfield_todos.yaml
+  sets: [fsd_greenfield_pure, fsd_greenfield]
+- path: fsd_greenfield_notes.yaml
+  sets: [fsd_greenfield_pure, fsd_greenfield]
+- path: fsd_layer_choice_navbar.yaml
+  sets: [fsd_layer_choice, fsd_refactoring]

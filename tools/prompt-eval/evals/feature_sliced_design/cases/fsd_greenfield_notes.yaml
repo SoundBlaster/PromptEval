@@ -1,0 +1,67 @@
+id: fsd_greenfield_notes
+title: Greenfield notes editor from a blank src tree
+fixture: fsd_greenfield_notes
+task: |
+  Build a notes editor app in this TypeScript/React project.
+
+  Behavior:
+  - Show a sidebar list of notes (titles). Clicking a note makes it the active note.
+  - The main area shows the active note's title and body as editable fields. Edits update the note in place.
+  - A "New note" button creates a fresh empty note and makes it active.
+  - Each active note has a "Delete" button that removes it.
+  - Persist all notes to localStorage between reloads.
+
+  Implementation constraints:
+  - No backend, no routing, no auth.
+  - Use functional React components and hooks.
+  - Wire the page into src/main.tsx so App renders it.
+  - You choose the internal architecture and folder structure.
+checks:
+  required_files:
+  - src/main.tsx
+rubric:
+  functional_correctness: 20
+  layer_compliance: 20
+  public_api_correctness: 20
+  segment_organization: 30
+  scope_control: 10
+notes: |
+  Medium-complexity pure-greenfield case. Three user actions (create, edit, delete)
+  applied to a shared "active note" state. Strong FSD solution puts each action in
+  its own features/<verb> slice (create-note, edit-note, delete-note) while
+  entities/note owns the data and list rendering.
+judge:
+  categories: [layer_compliance, public_api_correctness, segment_organization, scope_control]
+  criteria:
+  - Score the agent's chosen architecture against Feature-Sliced Design v2 conventions.
+  - Reward correct layer separation (entities / features / pages / shared).
+  - Reward a separate features/<verb> slice for each distinct user action (create, edit, delete).
+  - Penalize lumping all actions into the entity, the page, or a single monolithic feature.
+  - Reward explicit slice public APIs (index.ts) and FSD-shaped segment naming.
+  binary_evals:
+  - id: fsd_layers_used
+    category: layer_compliance
+    question: Did the agent organise the code into FSD layers (entities/, features/, pages/, widgets/, shared/) instead of flat /components, /hooks, /services?
+    pass_condition: At least two FSD layer directories exist under src/ with domain-named slices.
+    fail_condition: Code uses flat technical groupings, or only a single layer.
+  - id: feature_per_action
+    category: layer_compliance
+    question: Is each distinct user action (create, edit, delete) modeled as its own features/<verb> slice rather than lumped together or hidden inside entities/note?
+    pass_condition: features/ contains at least three verb-named slices (one per action), or there is clear separation of action logic outside the note entity.
+    fail_condition: Action logic lives inside entities/note, or all actions are crammed into a single features/notes slice, or there are no features/ slices.
+  - id: entity_owns_data
+    category: layer_compliance
+    question: Does entities/note own the Note type, the notes collection state (with localStorage persistence), and the list-item presentation, while features only handle user actions?
+    pass_condition: The entity layer owns data shape, persistent state, and presentation; features only contain action handlers and their UI affordances.
+    fail_condition: The entity is empty or just a type, OR features duplicate data ownership, OR persistence logic leaks out of the entity.
+  - id: public_api_per_slice
+    category: public_api_correctness
+    question: Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?
+    pass_condition: Every slice has an index.ts; all imports from other slices use the slice root.
+    fail_condition: Slices lack index.ts, or consumers import internal segment files directly.
+  - id: segments_named_correctly
+    category: segment_organization
+    question: Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?
+    pass_condition: All segment directories use ui/, model/, api/, lib/, or config/.
+    fail_condition: Slices use technical segment names like components/, hooks/, or utils/.
+sets: [fsd_greenfield_pure, fsd_greenfield]

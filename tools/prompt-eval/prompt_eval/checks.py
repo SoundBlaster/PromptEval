@@ -16,9 +16,7 @@ def git_diff(sandbox: Path) -> str:
     # done by cleanup refactors — both must reach the LLM judge. `git add -N` was tried first
     # but silently dropped tracked-file deletions from the diff.
     subprocess.run(["git", "add", "-A", "."], cwd=sandbox, capture_output=True, check=True)
-    return subprocess.run(
-        ["git", "diff", "--cached"], cwd=sandbox, text=True, capture_output=True, check=True
-    ).stdout
+    return subprocess.run(["git", "diff", "--cached"], cwd=sandbox, text=True, capture_output=True, check=True).stdout
 
 
 def changed_files_count(diff: str) -> int:

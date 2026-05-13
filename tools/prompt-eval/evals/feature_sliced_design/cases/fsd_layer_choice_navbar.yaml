@@ -1,0 +1,63 @@
+id: fsd_layer_choice_navbar
+title: Extract a reusable app header — recognize when widgets/ is the right layer
+fixture: fsd_layer_choice_navbar
+task: |
+  The app currently has two pages — pages/dashboard and pages/reports. The dashboard
+  page assembles an app-wide header containing the company name, the current user
+  badge (from entities/user), a notifications icon (from features/show-notifications),
+  and a logout button (from features/logout). The reports page has no header yet.
+
+  Your task: add the same header to pages/reports so both pages render it identically.
+  Avoid duplicating the header composition between the two pages.
+
+  Use the architecture conventions you can infer from the codebase. You may add,
+  rename, or restructure files as needed. Do not change behavior of the user, logout,
+  or notifications functionality itself.
+checks:
+  required_files:
+  - src/pages/dashboard/ui/dashboard-page.tsx
+  - src/pages/reports/ui/reports-page.tsx
+rubric:
+  functional_correctness: 20
+  layer_compliance: 30
+  public_api_correctness: 20
+  segment_organization: 20
+  scope_control: 10
+notes: |
+  Layer-choice case. The natural FSD answer is to extract a widgets/app-header slice
+  that composes entities/user + features/show-notifications + features/logout, and
+  use it from both pages. The codebase has all the building blocks for a widget but
+  no existing widget — testing whether the agent recognizes the widgets/ layer as
+  the right home for a reusable composite block. Wrong answers: duplicate the header
+  composition in each page, hoist it into shared/ui, or put it in features/.
+judge:
+  categories: [layer_compliance, public_api_correctness, segment_organization, scope_control]
+  criteria:
+  - Reward extracting the header into a widgets/<name> slice that composes the existing
+    entity and features.
+  - Penalize duplicating the header composition across pages.
+  - Penalize placing the composite header in shared/, features/, or in a page-local file.
+  - Reward going through public APIs (@/widgets/<name>, @/entities/user, @/features/...).
+  - Penalize changing behavior of user, logout, or notifications themselves.
+  binary_evals:
+  - id: widget_slice_created
+    category: layer_compliance
+    question: Did the agent create a widgets/<name> slice (e.g. widgets/app-header) that owns the composite header rendering?
+    pass_condition: A new directory under src/widgets/ exists with an index.ts and a ui/ component that renders the header.
+    fail_condition: No new slice under widgets/ was created — the composition lives in pages/, features/, shared/, or is duplicated across pages.
+  - id: no_duplication
+    category: scope_control
+    question: Is the header composition defined in exactly one place, not duplicated across pages/dashboard and pages/reports?
+    pass_condition: Both pages import the same header component from one location; the composition (UserBadge + NotificationsIcon + LogoutButton + brand) is not repeated inline.
+    fail_condition: Each page contains its own copy of the header composition (even with the same code).
+  - id: widget_composes_existing
+    category: layer_compliance
+    question: Does the new widget compose the existing slices via their public APIs (@/entities/user, @/features/show-notifications, @/features/logout) rather than re-implementing user/notification/logout logic?
+    pass_condition: The widget imports from the existing entity/feature public APIs and reuses their components/hooks unchanged.
+    fail_condition: The widget reimplements user fetching, notifications, or logout, or imports them from internal paths.
+  - id: pages_use_widget_via_public_api
+    category: public_api_correctness
+    question: Do both pages import the header through @/widgets/<name> (the slice public API), not through internal widget paths?
+    pass_condition: Both pages import the header from the widget's slice root.
+    fail_condition: At least one page imports from an internal widget file, or skips the widget entirely.
+sets: [fsd_layer_choice, fsd_refactoring]

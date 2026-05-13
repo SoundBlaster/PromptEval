@@ -1,0 +1,60 @@
+id: fsd_greenfield_todos
+title: Greenfield todo list app from a blank src tree
+fixture: fsd_greenfield_todos
+task: |
+  Build a todo list app in this TypeScript/React project.
+
+  Behavior:
+  - Display the current list of todos. Each row shows the todo text and whether it is done.
+  - Provide a form to add a new todo (text input + submit button).
+  - Each row has a button to toggle the done state and a button to delete the todo.
+  - Persist the todo list to localStorage between reloads.
+
+  Implementation constraints:
+  - No backend, no routing, no auth.
+  - Use functional React components and hooks.
+  - Wire the page into src/main.tsx so App renders it.
+  - You choose the internal architecture and folder structure.
+checks:
+  required_files:
+  - src/main.tsx
+rubric:
+  functional_correctness: 20
+  layer_compliance: 20
+  public_api_correctness: 20
+  segment_organization: 30
+  scope_control: 10
+notes: |
+  Smaller pure-greenfield case than the catalog. Three distinct user actions
+  (add, toggle, delete) — a strong FSD solution puts each in its own features/<verb>
+  slice. A bad solution lumps everything into a single components/TodoList.
+judge:
+  categories: [layer_compliance, public_api_correctness, segment_organization, scope_control]
+  criteria:
+  - Score the agent's chosen architecture against Feature-Sliced Design v2 conventions.
+  - Reward correct layer separation (entities / features / pages / shared) over flat /components, /hooks, /services groupings.
+  - Reward a separate features/<verb> slice for each distinct user action (add, toggle, delete).
+  - Penalize lumping multiple actions into a single feature slice or burying them inside the entity.
+  - Reward explicit slice public APIs (index.ts) and FSD-shaped segment naming (ui/, model/, api/, lib/).
+  binary_evals:
+  - id: fsd_layers_used
+    category: layer_compliance
+    question: Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?
+    pass_condition: At least two FSD layer directories (e.g. entities/ and pages/, or features/ and shared/) exist under src/ with domain-named slices inside.
+    fail_condition: The code uses flat technical groupings like src/components, src/hooks, src/services with no FSD layers, OR uses a single layer only.
+  - id: feature_per_action
+    category: layer_compliance
+    question: Is each distinct user action (add, toggle, delete) modeled as its own features/<verb> slice rather than lumped together or hidden inside an entity?
+    pass_condition: features/ contains at least three verb-named slices (one per action), or there is clear separation of action logic outside the todo entity.
+    fail_condition: Action logic lives inside entities/todo, or all actions are crammed into a single features/todos slice, or there are no features/ slices at all.
+  - id: public_api_per_slice
+    category: public_api_correctness
+    question: Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?
+    pass_condition: Every slice has an index.ts; all imports from other slices use the slice root.
+    fail_condition: Slices lack index.ts, or consumers import internal segment files directly.
+  - id: segments_named_correctly
+    category: segment_organization
+    question: Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?
+    pass_condition: All segment directories use ui/, model/, api/, lib/, or config/.
+    fail_condition: Slices use technical segment names like components/, hooks/, or utils/.
+sets: [fsd_greenfield_pure, fsd_greenfield]
