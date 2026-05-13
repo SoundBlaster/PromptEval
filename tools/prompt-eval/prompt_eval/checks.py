@@ -11,11 +11,14 @@ SKIP_FILE_PARTS = {".git", ".venv", "venv", "env", "site-packages", "__pycache__
 
 
 def git_diff(sandbox: Path) -> str:
-    # Mark untracked files as intent-to-add so newly created files appear in the diff
-    # as new-file additions. Required for greenfield tasks where the agent creates files
-    # that would otherwise be invisible to `git diff` and to the LLM judge.
-    subprocess.run(["git", "add", "-N", "."], cwd=sandbox, capture_output=True, check=True)
-    return subprocess.run(["git", "diff"], cwd=sandbox, text=True, capture_output=True, check=True).stdout
+    # Stage all working-tree changes (additions, modifications, deletions) then diff against
+    # the baseline commit. This captures new files created by greenfield agents AND deletions
+    # done by cleanup refactors — both must reach the LLM judge. `git add -N` was tried first
+    # but silently dropped tracked-file deletions from the diff.
+    subprocess.run(["git", "add", "-A", "."], cwd=sandbox, capture_output=True, check=True)
+    return subprocess.run(
+        ["git", "diff", "--cached"], cwd=sandbox, text=True, capture_output=True, check=True
+    ).stdout
 
 
 def changed_files_count(diff: str) -> int:

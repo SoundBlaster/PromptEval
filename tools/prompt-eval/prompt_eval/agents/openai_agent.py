@@ -2,6 +2,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import socket
 import urllib.error
 import urllib.request
@@ -176,7 +177,12 @@ def _apply(sandbox: Path, writes: dict[Path, str], deletes: list[Path]) -> list[
         trace.append({"event": "write", "path": rel.as_posix(), "bytes": len(content)})
     for rel in deletes:
         target = sandbox / rel
-        if target.exists():
+        if not target.exists():
+            continue
+        if target.is_dir():
+            shutil.rmtree(target)
+            trace.append({"event": "delete_dir", "path": rel.as_posix()})
+        else:
             target.unlink()
             trace.append({"event": "delete", "path": rel.as_posix()})
     return trace

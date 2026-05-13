@@ -28,6 +28,20 @@ def test_git_diff_includes_newly_created_files():
         shutil.rmtree(sb, ignore_errors=True)
 
 
+def test_git_diff_includes_deletions_of_tracked_files():
+    root = Path(__file__).resolve().parents[1]
+    sb = prepare_sandbox(root / "fixtures/python_eo_shop/before")
+    try:
+        domain = sb / "shop" / "domain.py"
+        assert domain.exists()
+        domain.unlink()
+        diff = git_diff(sb)
+        assert "shop/domain.py" in diff
+        assert "deleted file" in diff or "/dev/null" in diff
+    finally:
+        shutil.rmtree(sb, ignore_errors=True)
+
+
 def test_prepare_sandbox_contains_only_before_fixture_files():
     root = Path(__file__).resolve().parents[1]
     fixture = root / "fixtures/eo_app_skeleton_bookstore"
