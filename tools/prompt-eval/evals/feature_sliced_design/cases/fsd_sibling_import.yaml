@@ -1,0 +1,48 @@
+id: fsd_sibling_import
+title: Fix cross-feature import between sibling slices
+fixture: fsd_sibling_import
+task: |
+  The `features/like-post` feature imports `ActionButton` directly from
+  `features/send-comment/ui/send-button`, violating FSD slice isolation.
+  Features on the same layer must not import from each other.
+
+  Fix this violation so that both features can use the shared button
+  without a cross-feature dependency.
+checks:
+  commands:
+  - ["steiger", "./src"]
+  required_files:
+  - src/shared/ui/index.ts
+rubric:
+  functional_correctness: 25
+  layer_compliance: 35
+  public_api_correctness: 20
+  segment_organization: 10
+  scope_control: 10
+notes: |
+  The correct fix extracts ActionButton to shared/ui and updates both features
+  to import from @/shared/ui. A bad solution re-exports ActionButton from the
+  send-comment index.ts, which still violates slice isolation. steiger catches both.
+judge:
+  categories: [segment_organization, scope_control, public_api_correctness]
+  criteria:
+  - Score the completeness and cleanliness of the extraction to shared/ui.
+  - Reward fully removing the now-redundant local definition rather than leaving a dead re-export.
+  - Reward updating all in-feature consumers (comment-form.tsx) to import from the shared location.
+  binary_evals:
+  - id: extracted_to_shared
+    category: segment_organization
+    question: Did the agent create a proper shared/ui slice with the extracted ActionButton (action-button.tsx and an index.ts public API)?
+    pass_condition: src/shared/ui contains action-button.tsx (or equivalent) and an index.ts that exports it.
+    fail_condition: No shared/ui slice was created, or the button still lives only inside a feature.
+  - id: removed_dead_code
+    category: scope_control
+    question: Did the agent eliminate the now-dead ActionButton definition inside features/send-comment instead of leaving it as a re-export shim?
+    pass_condition: The original send-button.tsx is deleted or no longer defines ActionButton (it is fully sourced from shared/ui).
+    fail_condition: send-button.tsx still defines or re-exports ActionButton, leaving dead code that future readers must navigate.
+  - id: consumers_updated
+    category: public_api_correctness
+    question: Did the agent update all in-feature consumers (notably comment-form.tsx) to import ActionButton from the new shared location rather than from a stale local path?
+    pass_condition: comment-form.tsx imports ActionButton from @/shared/ui (or equivalent shared path).
+    fail_condition: comment-form.tsx still imports ActionButton from a local feature path.
+sets: [tuning, fsd_refactoring]

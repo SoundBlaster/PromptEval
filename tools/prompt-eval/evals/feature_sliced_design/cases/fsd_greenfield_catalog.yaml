@@ -1,0 +1,70 @@
+id: fsd_greenfield_catalog
+title: Greenfield product catalog from a blank src tree
+fixture: fsd_greenfield_catalog
+task: |
+  Build a product catalog feature in this TypeScript/React app.
+
+  Behavior:
+  - Render a list of products fetched from GET /api/products. Each product has id, name, and price.
+  - Each product row has an "Add to cart" button.
+  - Maintain a shopping cart in client state, persisted to localStorage between reloads.
+  - Show a cart summary in the page header with the total number of items in the cart.
+
+  Implementation constraints:
+  - No persistence backend, no routing, no auth.
+  - Use functional React components and hooks.
+  - Wire the page into src/main.tsx so the App component renders the catalog.
+  - You choose the internal architecture and folder structure.
+checks:
+  required_files:
+  - src/main.tsx
+rubric:
+  functional_correctness: 20
+  layer_compliance: 20
+  public_api_correctness: 20
+  segment_organization: 30
+  scope_control: 10
+notes: |
+  Purely greenfield: the before/ tree has only package.json, tsconfig.json, and a stub main.tsx.
+  No FSD layer hints in the existing code. This isolates whether the prompt carries the FSD
+  signal, since the agent cannot copy the pattern from existing files.
+
+  A flat /components, /hooks, /services structure is the typical non-FSD baseline. An FSD
+  solution introduces entities (product, cart), features (add-to-cart), pages (catalog),
+  and shared (api, lib) with explicit index.ts public APIs.
+judge:
+  categories: [layer_compliance, public_api_correctness, segment_organization, scope_control]
+  criteria:
+  - Score the agent's chosen architecture against Feature-Sliced Design v2 conventions.
+  - Reward correct layer separation (entities / features / pages / shared) over flat /components, /hooks, /services groupings.
+  - Reward explicit slice public APIs (index.ts) with named exports, not internal-path imports.
+  - Reward FSD-shaped segment naming (ui/, model/, api/, lib/, config/) over technical groupings (components/, hooks/, utils/, services/).
+  - Penalize all-in-one files, layer inversion (lower layer importing higher), or sibling slice cross-imports.
+  - Do not penalize for missing styling, missing tests, or other non-architectural omissions.
+  binary_evals:
+  - id: fsd_layers_used
+    category: layer_compliance
+    question: Did the agent organise the code into FSD layers (some combination of entities/, features/, pages/, widgets/, shared/) under src/, instead of a flat /components, /hooks, /services structure?
+    pass_condition: At least two FSD layer directories (e.g. entities/ and pages/, or features/ and shared/) exist under src/ with domain-named slices inside.
+    fail_condition: The code uses flat technical groupings like src/components, src/hooks, src/services with no FSD layers, OR uses a single layer only.
+  - id: domain_slices_named
+    category: layer_compliance
+    question: Are slices named by business meaning — features as verb phrases (add-to-cart, ...) and entities as nouns (product, cart, ...) — rather than as technical groupings?
+    pass_condition: There is at least one feature slice with a verb-phrase name and at least one entity slice with a noun name; no slices named like "components", "helpers", "utils".
+    fail_condition: Slices have abstract/technical names, or the project lacks domain-named slices entirely.
+  - id: public_api_per_slice
+    category: public_api_correctness
+    question: Does each created slice expose an index.ts public API, and do cross-slice imports go through @/<layer>/<slice> rather than internal paths?
+    pass_condition: Every slice has an index.ts; all imports from other slices use the slice root (no @/entities/product/model/... style imports).
+    fail_condition: Slices lack index.ts files, or consumers import internal segment files directly.
+  - id: segments_named_correctly
+    category: segment_organization
+    question: Inside slices, are segments named with FSD conventions (ui/, model/, api/, lib/, config/) rather than technical names (components/, hooks/, utils/, services/)?
+    pass_condition: All segment directories use ui/, model/, api/, lib/, or config/. No components/, hooks/, utils/, services/ subdirectories appear inside slices.
+    fail_condition: Slices use technical segment names like components/, hooks/, or utils/.
+  - id: cart_in_entity_layer
+    category: layer_compliance
+    question: Does cart state (the useCart hook and storage logic) live in an entity slice (entities/cart) rather than inside a feature, page, or global hooks folder?
+    pass_condition: Cart state and persistence helpers are owned by entities/cart (or split between entities/cart and shared/lib for storage).
+    fail_condition: Cart state lives in features/, pages/, or in a flat hooks/ directory.
+sets: [fsd_greenfield_pure, fsd_greenfield]

@@ -1,0 +1,46 @@
+id: fsd_missing_index
+title: Add missing public API and fix bypassing imports
+fixture: fsd_missing_index
+task: |
+  The `features/user-settings` feature has no `index.ts` public API.
+  The settings page imports directly from the internal path
+  `@/features/user-settings/ui/settings-form`, bypassing the slice boundary.
+
+  Add an index.ts to the feature that exports its public surface, then
+  update all external imports to go through the public API.
+checks:
+  commands:
+  - ["steiger", "./src"]
+  required_files:
+  - src/features/user-settings/index.ts
+  required_regex:
+  - pattern: "from ['\"]@/features/user-settings['\"]"
+    target: diff
+    reason: page must import through the feature public API
+rubric:
+  functional_correctness: 25
+  layer_compliance: 20
+  public_api_correctness: 35
+  segment_organization: 10
+  scope_control: 10
+notes: |
+  Good solution creates index.ts AND updates the page import. Bad solution creates
+  index.ts but forgets to update the page — steiger still flags the bypass.
+judge:
+  categories: [public_api_correctness, scope_control]
+  criteria:
+  - Score completeness of the public API migration across all consumers.
+  - Reward updating every page that bypassed the feature, not just the one named in the task.
+  - Penalize export * in the new index.ts; prefer named exports of the intended public surface.
+  binary_evals:
+  - id: all_consumers_migrated
+    category: public_api_correctness
+    question: Did the agent update every page that imported from @/features/user-settings/ui/settings-form (both pages/settings and pages/profile), not only the one mentioned in the task?
+    pass_condition: All external imports of user-settings now point at @/features/user-settings; no bypass paths remain.
+    fail_condition: At least one consumer still imports from an internal user-settings path.
+  - id: explicit_public_api
+    category: public_api_correctness
+    question: Is the new features/user-settings/index.ts a minimal, explicit public API (named exports of the intended surface) rather than a blanket export *?
+    pass_condition: index.ts exports SettingsForm and the related hook by name, without using export *.
+    fail_condition: index.ts uses export * or re-exports unrelated internals.
+sets: [tuning, fsd_refactoring]

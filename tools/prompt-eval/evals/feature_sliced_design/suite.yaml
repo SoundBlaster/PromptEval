@@ -1,0 +1,12 @@
+name: feature_sliced_design
+cases:
+- path: fsd_sibling_import.yaml
+  sets: [tuning, fsd_refactoring]
+- path: fsd_public_api_bypass.yaml
+  sets: [tuning, fsd_refactoring]
+- path: fsd_missing_index.yaml
+  sets: [tuning, fsd_refactoring]
+- path: fsd_greenfield_auth.yaml
+  sets: [fsd_greenfield]
+- path: fsd_greenfield_catalog.yaml
+  sets: [fsd_greenfield_pure, fsd_greenfield]

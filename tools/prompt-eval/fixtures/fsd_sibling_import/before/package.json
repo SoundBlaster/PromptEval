@@ -1,0 +1,5 @@
+{
+  "name": "fsd-sibling-import",
+  "private": true,
+  "type": "module"
+}

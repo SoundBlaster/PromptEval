@@ -12,6 +12,7 @@ from .models import CaseRunResult
 from .agents.fixture_agent import apply_fixture_solution
 from .agents.mock_agent import run_mock
 from .agents.codex_agent import run_codex
+from .agents.openai_agent import run_openai
 from .judges.base import JudgeResult
 from .judges.mock_judge import judge_mock
 from .judges.subagent_judge import judge_subagent
@@ -99,6 +100,10 @@ def run_suite(
     judge_model: str | None = None,
     judge_model_mode: str | None = None,
     judge_codex_bin: str | None = None,
+    api_base: str | None = None,
+    api_key: str | None = None,
+    max_tokens: int | None = None,
+    request_timeout: int | None = None,
 ) -> Path:
     run_id = f"{datetime.datetime.utcnow().strftime('%Y%m%d-%H%M%S-%f')}-{uuid.uuid4().hex[:8]}"
     run_dir = root / "runs" / run_id
@@ -132,6 +137,17 @@ def run_suite(
                     ar = apply_fixture_solution(sandbox, fixture_root, "bad")
                 elif agent == "codex":
                     ar = run_codex(sandbox, _agent_task(case), ptxt, model, model_mode, codex_bin)
+                elif agent == "openai":
+                    ar = run_openai(
+                        sandbox,
+                        _agent_task(case),
+                        ptxt,
+                        model,
+                        api_base,
+                        api_key,
+                        max_tokens,
+                        timeout=request_timeout,
+                    )
                 else:
                     ar = run_mock(case.task)
                 diff = git_diff(sandbox)

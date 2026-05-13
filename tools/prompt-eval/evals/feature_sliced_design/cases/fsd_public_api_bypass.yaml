@@ -1,0 +1,45 @@
+id: fsd_public_api_bypass
+title: Fix import that bypasses entity public API
+fixture: fsd_public_api_bypass
+task: |
+  The `widgets/product-grid` widget imports `normalizeProduct` directly from
+  `@/entities/product/model/product`, bypassing the entity's public API.
+  All external imports must go through the slice's index.ts.
+
+  Fix the import path. If normalizeProduct is not yet exported from the
+  entity's index.ts, add it there first.
+checks:
+  commands:
+  - ["steiger", "./src"]
+  required_regex:
+  - pattern: "from ['\"]@/entities/product['\"]"
+    target: diff
+    reason: widget must import through the entity public API, not an internal path
+rubric:
+  functional_correctness: 25
+  layer_compliance: 20
+  public_api_correctness: 35
+  segment_organization: 10
+  scope_control: 10
+notes: |
+  Good solution updates the widget import AND exports normalizeProduct from the
+  entity index. Bad solution only updates the entity index but leaves the widget
+  import unchanged, so steiger still fails.
+judge:
+  categories: [public_api_correctness, scope_control]
+  criteria:
+  - Score whether the public API is widened intentionally and minimally.
+  - Penalize re-exporting everything via export * or exposing more internals than the widget actually uses.
+  - Reward keeping unrelated internals (e.g., other entity model files) private.
+  binary_evals:
+  - id: minimal_export_widening
+    category: public_api_correctness
+    question: Does the updated entities/product/index.ts export only the symbols actually consumed externally (Product type, ProductCard, normalizeProduct), without leaking unrelated internals or using export *?
+    pass_condition: index.ts uses named exports limited to the public surface needed by the widget; no export * appears.
+    fail_condition: index.ts re-exports everything with export *, or exposes internal helpers not needed by any consumer.
+  - id: widget_uses_public_api
+    category: public_api_correctness
+    question: Does the widget import normalizeProduct from @/entities/product (the slice root) rather than any internal path like @/entities/product/model/...?
+    pass_condition: All widget imports from entities/product point at the slice root, not at internal segment files.
+    fail_condition: The widget still imports any symbol from an internal entity path.
+sets: [tuning, fsd_refactoring]
