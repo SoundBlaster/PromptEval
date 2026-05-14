@@ -50,6 +50,7 @@ def load_case(path: Path, sets: list[str] | None = None) -> EvalCase:
         forbidden_regex=regex_checks(checks.get("forbidden_regex")),
         required_regex=regex_checks(checks.get("required_regex")),
         max_changed_files=checks.get("max_changed_files"),
+        fsd_structure=bool(checks.get("fsd_structure", False)),
     )
     case_sets = _unique(_list(raw.get("sets")) + _list(sets))
     judge_raw = raw.get("judge")
@@ -63,6 +64,7 @@ def load_case(path: Path, sets: list[str] | None = None) -> EvalCase:
             criteria=_list(judge_raw.get("criteria")),
             categories=_list(judge_raw.get("categories")),
             binary_evals=binary_evals,
+            include_before_tree=bool(judge_raw.get("include_before_tree", False)),
         )
         if isinstance(judge_raw, dict)
         else None

@@ -11,6 +11,7 @@ task: |
   The auth page scaffold at pages/auth already exists — wire LoginForm into it.
   Use shared/api for the HTTP call. Do not add persistence, routing, or auth tokens.
 checks:
+  fsd_structure: true
   required_files:
   - src/features/login/index.ts
   - src/features/login/ui/login-form.tsx
@@ -27,6 +28,7 @@ notes: |
   the HTTP call in api/, and the React component in ui/. index.ts exports only
   the public surface. The page imports through @/features/login.
 judge:
+  include_before_tree: true
   categories: [public_api_correctness, segment_organization, layer_compliance]
   criteria:
   - Score FSD structural quality, not generic clean code. Steiger passing is necessary

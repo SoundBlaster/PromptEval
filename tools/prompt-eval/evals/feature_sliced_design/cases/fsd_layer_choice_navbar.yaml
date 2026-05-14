@@ -31,6 +31,7 @@ notes: |
   the right home for a reusable composite block. Wrong answers: duplicate the header
   composition in each page, hoist it into shared/ui, or put it in features/.
 judge:
+  include_before_tree: true
   categories: [layer_compliance, public_api_correctness, segment_organization, scope_control]
   criteria:
   - Reward extracting the header into a widgets/<name> slice that composes the existing

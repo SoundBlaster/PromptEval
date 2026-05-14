@@ -1,10 +1,22 @@
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from collections import Counter
 from pathlib import Path
 from typing import Any
 import json
+
+
+def _stdev(values: list[float]) -> float:
+    if len(values) < 2:
+        return 0.0
+    mean = sum(values) / len(values)
+    return math.sqrt(sum((v - mean) ** 2 for v in values) / (len(values) - 1))
+
+
+def _runs_per_cell(rows: list[dict[str, Any]]) -> int:
+    return max((int(row.get("run_index", 0)) for row in rows), default=0) + 1
 
 
 def _rows(run: Path) -> list[dict[str, Any]]:
@@ -48,10 +60,13 @@ def _prompt_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     summary = []
     for prompt, prompt_rows in sorted(grouped.items()):
         scores = [row["score"]["total"] for row in prompt_rows]
+        distinct_cases = {row["case_id"] for row in prompt_rows}
         item = {
             "prompt": prompt,
-            "cases": len(scores),
+            "cases": len(distinct_cases),
+            "results": len(prompt_rows),
             "average": round(sum(scores) / len(scores), 1),
+            "std": round(_stdev(scores), 2),
             "sets": {},
         }
         for key in set_keys:
@@ -63,18 +78,31 @@ def _prompt_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _case_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [
-        {
-            "case_id": row["case_id"],
-            "prompt": _prompt_name(row["prompt"]),
-            "score": row["score"]["total"],
-            "case_sets": row.get("case_sets", []),
-            "failure_tags": row["score"].get("failure_tags", []),
-            "judge": (row.get("judge") or {}).get("summary", ""),
-            "judge_binary_evals": (row.get("judge") or {}).get("binary_evals", []),
-        }
-        for row in rows
-    ]
+    grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        grouped[(row["case_id"], _prompt_name(row["prompt"]))].append(row)
+    out = []
+    for (case_id, prompt), prompt_rows in grouped.items():
+        prompt_rows = sorted(prompt_rows, key=lambda r: r.get("run_index", 0))
+        scores = [r["score"]["total"] for r in prompt_rows]
+        tags: list[str] = sorted({tag for r in prompt_rows for tag in r["score"].get("failure_tags", [])})
+        latest = prompt_rows[-1]
+        out.append(
+            {
+                "case_id": case_id,
+                "prompt": prompt,
+                "runs": len(prompt_rows),
+                "score": round(sum(scores) / len(scores), 1),
+                "score_std": round(_stdev(scores), 2),
+                "score_min": min(scores),
+                "score_max": max(scores),
+                "case_sets": prompt_rows[0].get("case_sets", []),
+                "failure_tags": tags,
+                "judge": (latest.get("judge") or {}).get("summary", ""),
+                "judge_binary_evals": (latest.get("judge") or {}).get("binary_evals", []),
+            }
+        )
+    return out
 
 
 def _shared_case_wins(prompt: str, rows: list[dict[str, Any]]) -> tuple[int, int]:
@@ -168,6 +196,7 @@ def _record_payload(run: Path, title: str | None = None) -> dict[str, Any]:
         "run_id": run.name,
         "title": title or metadata.get("title") or run.name,
         "suite": metadata.get("suite") or rows[0]["suite"],
+        "runs": _runs_per_cell(rows),
         "metadata": metadata,
         "prompts": prompts,
         "analysis": _prompt_analysis(rows, prompts),
@@ -176,13 +205,16 @@ def _record_payload(run: Path, title: str | None = None) -> dict[str, Any]:
 
 
 def _markdown(record: dict[str, Any]) -> str:
+    multi_run = record.get("runs", 1) > 1
     lines = [
         f"# {record['title']}",
         "",
         f"Suite: `{record['suite']}`",
         f"Run: `{record['run_id']}`",
-        "",
     ]
+    if multi_run:
+        lines.append(f"Runs per cell: `{record['runs']}`")
+    lines.append("")
     metadata = record.get("metadata", {})
     if metadata:
         fields = ["agent", "model", "model_mode", "case_sets", "judge", "judge_model", "judge_model_mode"]
@@ -200,7 +232,10 @@ def _markdown(record: dict[str, Any]) -> str:
     lines.append("| " + " | ".join(headers) + " |")
     lines.append("|" + "|".join(["---", "---:", "---:", *(["---:"] * len(set_keys))]) + "|")
     for prompt in record["prompts"]:
-        row = [prompt["prompt"], str(prompt["cases"]), f"{prompt['average']:.1f}"]
+        avg_cell = f"{prompt['average']:.1f}"
+        if multi_run and prompt.get("std", 0):
+            avg_cell = f"{prompt['average']:.1f} ± {prompt['std']:.1f}"
+        row = [prompt["prompt"], str(prompt["cases"]), avg_cell]
         row.extend(f"{prompt['sets'].get(key, 'n/a')}" for key in set_keys)
         lines.append("| " + " | ".join(row) + " |")
     lines += ["", "## Strengths And Weaknesses", "", "| Prompt | Strengths | Weaknesses |", "|---|---|---|"]
@@ -208,13 +243,22 @@ def _markdown(record: dict[str, Any]) -> str:
         strengths = "<br>".join(item["strengths"]).replace("|", "\\|")
         weaknesses = "<br>".join(item["weaknesses"]).replace("|", "\\|")
         lines.append(f"| {item['prompt']} | {strengths} | {weaknesses} |")
-    lines += [
-        "",
-        "## Case Results",
-        "",
-        "| Case | Prompt | Score | Failure tags | Judge | Judge evals |",
-        "|---|---|---:|---|---|---|",
-    ]
+    if multi_run:
+        lines += [
+            "",
+            "## Case Results",
+            "",
+            "| Case | Prompt | Score (mean ± std) | Min/Max | Runs | Failure tags | Latest judge | Latest evals |",
+            "|---|---|---:|---:|---:|---|---|---|",
+        ]
+    else:
+        lines += [
+            "",
+            "## Case Results",
+            "",
+            "| Case | Prompt | Score | Failure tags | Judge | Judge evals |",
+            "|---|---|---:|---|---|---|",
+        ]
     for case in record["cases"]:
         tags = ", ".join(case["failure_tags"])
         judge = str(case["judge"]).replace("\n", "<br>").replace("|", "\\|")
@@ -229,7 +273,18 @@ def _markdown(record: dict[str, Any]) -> str:
                 ).replace("|", "\\|")
         else:
             evals = ""
-        lines.append(f"| {case['case_id']} | {case['prompt']} | {case['score']} | {tags} | {judge} | {evals} |")
+        if multi_run:
+            score_cell = f"{case['score']:.1f}"
+            std = case.get("score_std", 0)
+            if std:
+                score_cell = f"{case['score']:.1f} ± {std:.1f}"
+            min_max = f"{case.get('score_min', case['score'])}/{case.get('score_max', case['score'])}"
+            lines.append(
+                f"| {case['case_id']} | {case['prompt']} | {score_cell} | {min_max} | "
+                f"{case.get('runs', 1)} | {tags} | {judge} | {evals} |"
+            )
+        else:
+            lines.append(f"| {case['case_id']} | {case['prompt']} | {case['score']} | {tags} | {judge} | {evals} |")
     lines.append("")
     return "\n".join(lines)
 

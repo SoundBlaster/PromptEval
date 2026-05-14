@@ -4,6 +4,7 @@ import fnmatch
 import re
 import shlex
 import subprocess
+from .fsd_check import check_fsd_structure
 from .models import EvalCase, CheckResult
 
 
@@ -68,4 +69,6 @@ def run_checks(case: EvalCase, sandbox: Path, diff: str) -> list[CheckResult]:
     if case.checks.max_changed_files is not None:
         c = changed_files_count(diff)
         out.append(CheckResult(c <= case.checks.max_changed_files, "max_changed_files", f"changed={c}"))
+    if case.checks.fsd_structure:
+        out.extend(check_fsd_structure(sandbox))
     return out

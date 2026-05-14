@@ -16,6 +16,7 @@ task: |
   - Wire the page into src/main.tsx so the App component renders the catalog.
   - You choose the internal architecture and folder structure.
 checks:
+  fsd_structure: true
   required_files:
   - src/main.tsx
 rubric:
@@ -33,6 +34,7 @@ notes: |
   solution introduces entities (product, cart), features (add-to-cart), pages (catalog),
   and shared (api, lib) with explicit index.ts public APIs.
 judge:
+  include_before_tree: true
   categories: [layer_compliance, public_api_correctness, segment_organization, scope_control]
   criteria:
   - Score the agent's chosen architecture against Feature-Sliced Design v2 conventions.

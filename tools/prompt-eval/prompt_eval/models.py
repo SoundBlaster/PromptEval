@@ -27,6 +27,7 @@ class CaseChecks:
     forbidden_regex: list[RegexCheck] = field(default_factory=list)
     required_regex: list[RegexCheck] = field(default_factory=list)
     max_changed_files: int | None = None
+    fsd_structure: bool = False
 
 
 @dataclass
@@ -43,6 +44,7 @@ class CaseJudge:
     criteria: list[str] = field(default_factory=list)
     categories: list[str] = field(default_factory=list)
     binary_evals: list[JudgeBinaryEval] = field(default_factory=list)
+    include_before_tree: bool = False
 
 
 @dataclass
@@ -86,6 +88,7 @@ class CaseRunResult:
     judge: JudgeResult | None = None
     stdout: str = ""
     stderr: str = ""
+    run_index: int = 0
 
     def to_json(self) -> dict[str, Any]:
         data = asdict(self)

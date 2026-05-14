@@ -17,6 +17,7 @@ task: |
   - Wire the page into src/main.tsx so App renders it.
   - You choose the internal architecture and folder structure.
 checks:
+  fsd_structure: true
   required_files:
   - src/main.tsx
 rubric:
@@ -31,6 +32,7 @@ notes: |
   its own features/<verb> slice (create-note, edit-note, delete-note) while
   entities/note owns the data and list rendering.
 judge:
+  include_before_tree: true
   categories: [layer_compliance, public_api_correctness, segment_organization, scope_control]
   criteria:
   - Score the agent's chosen architecture against Feature-Sliced Design v2 conventions.

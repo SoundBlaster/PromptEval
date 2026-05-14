@@ -76,16 +76,33 @@ def main() -> None:
         help="HTTP timeout in seconds for the openai agent (default 600)",
     )
     runp.add_argument(
+        "--runs",
+        type=int,
+        default=1,
+        help="run each (prompt, case) cell N times; report aggregates mean/std (default 1)",
+    )
+    runp.add_argument(
         "--case-set", action="append", help="run only cases tagged with this set; repeat to include multiple sets"
     )
     runp.add_argument(
-        "--judge", default="none", choices=["none", "mock", "subagent"], help="optional LLM-as-judge layer"
+        "--judge",
+        default="none",
+        choices=["none", "mock", "subagent", "openai"],
+        help="optional LLM-as-judge layer",
     )
     runp.add_argument("--judge-model", help="model name for the LLM judge")
     runp.add_argument(
         "--judge-model-mode", choices=SUPPORTED_MODEL_MODES, help="model execution mode for the LLM judge"
     )
     runp.add_argument("--judge-codex-bin", help="path or command name for the Codex CLI used by the LLM judge")
+    runp.add_argument(
+        "--judge-api-base",
+        help="OpenAI-compatible API base URL for --judge openai (defaults to --api-base)",
+    )
+    runp.add_argument(
+        "--judge-api-key",
+        help="API key for --judge openai (defaults to --api-key or lm-studio)",
+    )
     runp.add_argument("--record", action="store_true", help="write a compact versioned record for this run")
     runp.add_argument("--record-title", help="human-readable title for --record")
     cmp = sub.add_parser("compare", help="print prompt average scores for a completed run")
@@ -138,6 +155,9 @@ def main() -> None:
             args.api_key,
             args.max_tokens,
             args.request_timeout,
+            args.runs,
+            args.judge_api_base,
+            args.judge_api_key,
         )
         if args.record:
             print(record_run(root, run_dir, args.record_title))
