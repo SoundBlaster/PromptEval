@@ -1,0 +1,79 @@
+id: fsd_greenfield_server_data
+title: Greenfield post feed with fetch, like, and comment
+fixture: fsd_greenfield_server_data
+task: |
+  Build a post feed in this TypeScript/React app that talks to a REST API.
+
+  Behavior:
+  - Fetch posts from GET /api/posts. Each post has id, title, body, likes (number),
+    and comments (array of {id, text}).
+  - Show a loading indicator while fetching and an error message on failure.
+  - Each post has a "Like" button that calls POST /api/posts/:id/like and updates
+    the displayed like count with the server response.
+  - Each post has a comment form that calls POST /api/posts/:id/comments with the
+    comment text and appends the new comment to the list.
+  - Wire the feed page into src/main.tsx so the App component renders it.
+
+  Implementation constraints:
+  - No routing, no auth.
+  - Use functional React components and hooks only.
+  - Avoid duplicating fetch/HTTP logic; centralise the raw HTTP plumbing.
+  - You choose the internal architecture and folder structure.
+checks:
+  fsd_structure: true
+  required_files:
+  - src/main.tsx
+rubric:
+  functional_correctness: 20
+  layer_compliance: 20
+  public_api_correctness: 20
+  segment_organization: 30
+  scope_control: 10
+notes: |
+  Purely greenfield: the before/ tree has only package.json, tsconfig.json, and a stub main.tsx.
+  No FSD layer hints exist in the existing code.
+
+  Key FSD signal tested: whether the agent assigns GET (read) responsibility to the entity
+  layer (entities/post/api + entities/post/model/usePosts) while keeping each mutation
+  (like, comment) in its own features/<verb> slice with a dedicated api/ segment. The typical
+  non-FSD baseline collapses all API calls into a single services/api.ts and places hooks
+  and components in flat /hooks and /components directories.
+judge:
+  include_before_tree: true
+  categories: [layer_compliance, public_api_correctness, segment_organization, scope_control]
+  criteria:
+  - Score the agent's chosen architecture against Feature-Sliced Design v2 conventions.
+  - Reward GET (read) logic owned by the entity layer (entities/post) rather than a shared services layer.
+  - Reward each mutation (like, add-comment) as its own features/<verb> slice with its own api/ segment.
+  - Reward shared HTTP plumbing (fetch wrapper) placed in shared/api/ to avoid duplication.
+  - Reward explicit slice public APIs (index.ts) with named exports; penalise internal-path imports across slices.
+  - Reward FSD-shaped segment naming (ui/, model/, api/) over technical names (components/, hooks/, services/).
+  - Penalise all-in-one files, layer inversion (e.g., entities importing from features), or sibling slice cross-imports.
+  - Do not penalise for missing styling, missing tests, or other non-architectural omissions.
+  binary_evals:
+  - id: entity_owns_fetch
+    category: layer_compliance
+    question: Does the post entity (entities/post) own the GET /api/posts fetch logic in an api/ segment and the usePosts hook in a model/ segment, rather than placing fetch logic in a shared services layer or flat hooks directory?
+    pass_condition: A directory under src/entities/post/ contains an api/ segment with the GET fetch call and a model/ segment (or file) with a usePosts-style hook; no GET fetch logic appears in src/services/, src/hooks/, or src/shared/.
+    fail_condition: The GET fetch logic lives in src/services/api.ts, src/hooks/usePosts.ts, or another location outside src/entities/post/.
+  - id: feature_per_mutation
+    category: layer_compliance
+    question: Is each write mutation (like a post, add a comment) implemented as its own features/<verb> slice rather than combined into the entity or a shared API file?
+    pass_condition: At least two distinct feature slices with verb-phrase names (e.g., like-post, add-comment) exist under src/features/, each containing its own api/ segment with the POST call.
+    fail_condition: Both mutations share a single file (e.g., services/api.ts or entities/post/api/), or mutations are inlined in the page component, with no dedicated feature slices.
+  - id: api_segment_in_feature
+    category: segment_organization
+    question: Does each mutation feature slice own its POST call in a dedicated api/ segment inside the feature (not delegating to a shared services layer or the entity)?
+    pass_condition: Each mutation feature (like-post, add-comment) has an api/ sub-directory containing the POST fetch function; the function is not imported from src/services/ or src/entities/.
+    fail_condition: Mutation feature slices import their POST logic from src/services/api.ts or src/entities/post/api/, rather than owning it locally in an api/ segment.
+  - id: public_api_per_slice
+    category: public_api_correctness
+    question: Does each created slice expose an index.ts public API, and do cross-slice imports go through the slice root rather than internal segment paths?
+    pass_condition: Every slice directory (entities/post, features/like-post, features/add-comment, pages/feed) has an index.ts; cross-slice imports use @/entities/post etc., not internal paths like @/entities/post/model/post.
+    fail_condition: Slices lack index.ts files, or consumer code imports from internal segment paths directly.
+  - id: shared_http_client
+    category: scope_control
+    question: Is the raw HTTP client / fetch wrapper placed in shared/api/ to avoid duplicating fetch boilerplate across feature and entity API segments?
+    pass_condition: A reusable fetch wrapper or HTTP client exists under src/shared/api/ and is imported by entity/feature api segments rather than each file duplicating raw fetch calls.
+    fail_condition: Each api/ segment duplicates raw fetch calls independently, or all fetch logic is centralised in src/services/ (a non-FSD layer) rather than shared/api/.
+sets: [fsd_greenfield_pure, fsd_greenfield]

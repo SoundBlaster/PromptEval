@@ -16,3 +16,9 @@ cases:
   sets: [fsd_greenfield_pure, fsd_greenfield]
 - path: fsd_layer_choice_navbar.yaml
   sets: [fsd_layer_choice, fsd_refactoring]
+- path: fsd_greenfield_routing.yaml
+  sets: [fsd_greenfield_pure, fsd_greenfield]
+- path: fsd_greenfield_shared_context.yaml
+  sets: [fsd_greenfield_pure, fsd_greenfield]
+- path: fsd_greenfield_server_data.yaml
+  sets: [fsd_greenfield_pure, fsd_greenfield]

@@ -12,7 +12,7 @@ from .models import CaseRunResult
 from .agents.fixture_agent import apply_fixture_solution
 from .agents.mock_agent import run_mock
 from .agents.codex_agent import run_codex
-from .agents.openai_agent import _gather_files, run_openai
+from .agents.openai_agent import _gather_files, run_openai, run_openai_loop
 from .judges.base import JudgeResult
 from .judges.mock_judge import judge_mock
 from .judges.openai_judge import judge_openai
@@ -131,6 +131,7 @@ def run_suite(
     runs: int = 1,
     judge_api_base: str | None = None,
     judge_api_key: str | None = None,
+    loop_iters: int = 2,
 ) -> Path:
     run_id = f"{datetime.datetime.utcnow().strftime('%Y%m%d-%H%M%S-%f')}-{uuid.uuid4().hex[:8]}"
     run_dir = root / "runs" / run_id
@@ -183,6 +184,24 @@ def run_suite(
                             api_key,
                             max_tokens,
                             timeout=request_timeout,
+                        )
+                    elif agent == "openai-loop":
+                        from .checks import run_checks as _run_checks
+
+                        def _check_fn(sb: Path) -> list:
+                            return _run_checks(case, sb, git_diff(sb))
+
+                        ar = run_openai_loop(
+                            sandbox,
+                            _agent_task(case),
+                            ptxt,
+                            model=model,
+                            api_base=api_base,
+                            api_key=api_key,
+                            max_tokens=max_tokens,
+                            timeout=request_timeout,
+                            max_iters=loop_iters,
+                            check_fn=_check_fn,
                         )
                     else:
                         ar = run_mock(case.task)

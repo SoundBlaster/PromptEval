@@ -7,6 +7,7 @@ import socket
 import urllib.error
 import urllib.request
 from pathlib import Path
+from typing import Callable
 from .base import AgentRun
 
 DEFAULT_API_BASE = "http://localhost:1234/v1"
@@ -91,12 +92,11 @@ def _build_user_message(task: str, files_blob: str) -> str:
     )
 
 
-def _chat_completion(
+def _chat_completion_raw(
     api_base: str,
     api_key: str,
     model: str,
-    system_prompt: str,
-    user_message: str,
+    messages: list[dict],
     max_tokens: int,
     temperature: float,
     timeout: int,
@@ -104,10 +104,7 @@ def _chat_completion(
     url = api_base.rstrip("/") + "/chat/completions"
     body = {
         "model": model,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
+        "messages": messages,
         "max_tokens": max_tokens,
         "temperature": temperature,
         "stream": False,
@@ -128,6 +125,23 @@ def _chat_completion(
     if not content:
         content = message.get("reasoning_content") or message.get("reasoning") or ""
     return content, parsed
+
+
+def _chat_completion(
+    api_base: str,
+    api_key: str,
+    model: str,
+    system_prompt: str,
+    user_message: str,
+    max_tokens: int,
+    temperature: float,
+    timeout: int,
+) -> tuple[str, dict]:
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message},
+    ]
+    return _chat_completion_raw(api_base, api_key, model, messages, max_tokens, temperature, timeout)
 
 
 def _safe_relpath(raw: str) -> Path | None:
@@ -247,3 +261,104 @@ def run_openai(
     if usage:
         trace.append({"event": "openai_usage", **usage})
     return AgentRun(ok=True, stdout=content, stderr="", trace=trace)
+
+
+def run_openai_loop(
+    sandbox: Path,
+    task: str,
+    prompt_text: str,
+    model: str | None = None,
+    api_base: str | None = None,
+    api_key: str | None = None,
+    max_tokens: int | None = None,
+    temperature: float | None = None,
+    timeout: int | None = None,
+    max_iters: int = 2,
+    check_fn: Callable[[Path], list] | None = None,
+) -> AgentRun:
+    resolved_model = model or os.environ.get("PEVAL_OPENAI_MODEL")
+    if not resolved_model:
+        return AgentRun(
+            ok=False,
+            stderr="openai agent requires --model (or PEVAL_OPENAI_MODEL env)",
+            trace=[{"event": "openai_missing_model"}],
+        )
+    resolved_base = api_base or os.environ.get("PEVAL_OPENAI_API_BASE", DEFAULT_API_BASE)
+    resolved_key = api_key or os.environ.get("PEVAL_OPENAI_API_KEY", "lm-studio")
+    resolved_max = max_tokens if max_tokens is not None else DEFAULT_MAX_TOKENS
+    resolved_temp = temperature if temperature is not None else DEFAULT_TEMPERATURE
+    resolved_timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
+
+    files_blob = _gather_files(sandbox)
+    user_message = _build_user_message(task, files_blob)
+    messages: list[dict] = [
+        {"role": "system", "content": prompt_text},
+        {"role": "user", "content": user_message},
+    ]
+
+    all_traces: list[dict] = []
+    last_content = ""
+
+    for i in range(max_iters):
+        try:
+            content, raw = _chat_completion_raw(
+                resolved_base,
+                resolved_key,
+                resolved_model,
+                messages,
+                resolved_max,
+                resolved_temp,
+                resolved_timeout,
+            )
+        except (urllib.error.URLError, socket.timeout, TimeoutError) as exc:
+            return AgentRun(
+                ok=False,
+                stderr=f"openai agent: HTTP error contacting {resolved_base}: {exc}",
+                trace=all_traces + [{"event": "openai_http_error", "error": str(exc), "iter": i}],
+            )
+        except (json.JSONDecodeError, ValueError) as exc:
+            return AgentRun(
+                ok=False,
+                stderr=f"openai agent: invalid response: {exc}",
+                trace=all_traces + [{"event": "openai_bad_response", "error": str(exc), "iter": i}],
+            )
+
+        last_content = content
+        writes, deletes = _parse_blocks(content)
+        iter_trace: list[dict] = [
+            {
+                "event": "openai_request",
+                "model": resolved_model,
+                "api_base": resolved_base,
+                "files": len(writes),
+                "iter": i,
+            }
+        ]
+        for t in _apply(sandbox, writes, deletes):
+            t["iter"] = i
+            iter_trace.append(t)
+        if not writes and not deletes:
+            iter_trace.append({"event": "openai_no_files_parsed", "content_head": content[:300], "iter": i})
+        usage = raw.get("usage") if isinstance(raw, dict) else None
+        if usage:
+            iter_trace.append({"event": "openai_usage", **usage, "iter": i})
+        all_traces.extend(iter_trace)
+
+        messages.append({"role": "assistant", "content": content})
+
+        if i < max_iters - 1 and check_fn is not None:
+            check_results = check_fn(sandbox)
+            failures = [r for r in check_results if not r.passed]
+            if not failures:
+                all_traces.append({"event": "openai_loop_early_stop", "iter": i, "reason": "all_checks_passed"})
+                break
+            feedback_lines = ["The following checks failed after your last response. Please fix them:"]
+            for r in failures:
+                feedback_lines.append(f"- {r.name}: {r.detail}")
+            feedback = "\n".join(feedback_lines)
+            messages.append({"role": "user", "content": feedback})
+            all_traces.append({"event": "openai_loop_feedback", "iter": i, "failures": len(failures)})
+        else:
+            break
+
+    return AgentRun(ok=True, stdout=last_content, stderr="", trace=all_traces)

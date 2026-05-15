@@ -1,0 +1,77 @@
+id: fsd_greenfield_routing
+title: Greenfield 3-page SPA with protected routing
+fixture: fsd_greenfield_routing
+task: |
+  Build a 3-page SPA in this TypeScript/React app using React Router.
+
+  Behavior:
+  - Three pages: Home (/), Profile (/profile), Settings (/settings).
+  - A shared nav layout wraps all three pages with links to each route.
+  - A protected route guard redirects unauthenticated users to /login.
+  - Auth state (token) is managed in a React context; a Login page (/login)
+    lets the user enter a token to authenticate.
+  - Wire everything into src/main.tsx so the App component renders the router.
+
+  Implementation constraints:
+  - Use React Router v6 (createBrowserRouter / RouterProvider).
+  - Use functional React components and hooks only.
+  - You choose the internal architecture and folder structure.
+checks:
+  fsd_structure: true
+  required_files:
+  - src/main.tsx
+rubric:
+  functional_correctness: 20
+  layer_compliance: 20
+  public_api_correctness: 20
+  segment_organization: 30
+  scope_control: 10
+notes: |
+  Purely greenfield: the before/ tree has only package.json, tsconfig.json, and a stub main.tsx.
+  No FSD layer hints exist in the existing code.
+
+  Key FSD signal tested: whether the agent recognises that router configuration and auth
+  providers belong in app/providers/*, pages are proper slice-per-route, the shared nav
+  layout belongs in widgets/, and the ProtectedRoute utility belongs in shared/ui/
+  (reusable across any page, not tied to a feature).
+
+  The typical non-FSD baseline puts everything under flat /components, /hooks,
+  /contexts, and /pages, collapsing layer distinctions.
+judge:
+  include_before_tree: true
+  categories: [layer_compliance, public_api_correctness, segment_organization, scope_control]
+  criteria:
+  - Score the agent's chosen architecture against Feature-Sliced Design v2 conventions.
+  - Reward correct layer separation (app/, pages/, widgets/, shared/) over flat /components, /hooks, /contexts.
+  - Reward placing router and auth providers in app/providers/* rather than in shared/, entities/, or a flat src/contexts/.
+  - Reward explicit slice public APIs (index.ts) with named exports; penalise internal-path imports across slices.
+  - Reward FSD-shaped segment naming (ui/, model/, api/) over technical names (components/, hooks/, utils/).
+  - Penalise all-in-one files, layer inversion, or sibling slice cross-imports.
+  - Do not penalise for missing styling, missing tests, or other non-architectural omissions.
+  binary_evals:
+  - id: app_layer_used
+    category: layer_compliance
+    question: Did the agent place the router configuration and auth provider in the app/ layer (e.g., app/providers/router/, app/providers/auth/) rather than misplacing them in shared/, entities/, or a flat src/contexts/?
+    pass_condition: Both the router setup and the AuthProvider live inside src/app/ (in any sub-structure); no router or auth provider code appears directly in src/contexts/, src/services/, or another non-app layer.
+    fail_condition: Router or auth provider code is placed in src/contexts/, src/services/, src/shared/, src/hooks/, or directly in src/main.tsx without an app/ layer.
+  - id: pages_per_route
+    category: layer_compliance
+    question: Does each route (home, profile, settings, login) have its own dedicated page slice under pages/?
+    pass_condition: At least three of the four routes (home, profile, settings, login) have a dedicated directory under src/pages/ with a page component inside a ui/ segment.
+    fail_condition: Pages are placed in a flat src/pages/ as bare files (e.g., Home.tsx) with no slice sub-directories, or routes share a single page component.
+  - id: layout_in_widgets
+    category: layer_compliance
+    question: Is the shared nav/layout component placed in the widgets/ layer rather than directly in pages/, app/, or a flat components/ directory?
+    pass_condition: A layout or nav component lives under src/widgets/ (e.g., widgets/layout/ui/app-layout.tsx) and is used by the router via Outlet.
+    fail_condition: The layout/nav is placed in src/components/, inside a page slice, or inlined directly in app/ without a widgets/ directory.
+  - id: public_api_per_slice
+    category: public_api_correctness
+    question: Does each created slice expose an index.ts public API, and do cross-slice imports go through the slice root (@/layer/slice) rather than internal segment paths?
+    pass_condition: Every slice directory (pages/*, widgets/*, shared/ui/*) has an index.ts; imports between slices use @/pages/home, @/widgets/layout, etc., not @/pages/home/ui/home-page.
+    fail_condition: Slices lack index.ts files, or consumer code imports from internal paths like @/pages/home/ui/home-page directly.
+  - id: protected_route_in_shared
+    category: segment_organization
+    question: Is the ProtectedRoute guard placed in shared/ui/ (a reusable utility) rather than inside a specific page slice or directly in app/?
+    pass_condition: ProtectedRoute lives under src/shared/ui/protected-route/ (or equivalent shared/ui sub-directory) with an index.ts re-export.
+    fail_condition: ProtectedRoute is placed inside a page slice (e.g., pages/home/), in app/ alongside providers, or in a flat src/components/ directory.
+sets: [fsd_greenfield_pure, fsd_greenfield]

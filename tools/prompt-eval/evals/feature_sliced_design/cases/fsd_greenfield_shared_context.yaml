@@ -1,0 +1,79 @@
+id: fsd_greenfield_shared_context
+title: Greenfield multi-context app with theme, locale, and auth
+fixture: fsd_greenfield_shared_context
+task: |
+  Add theme (light/dark), locale (en/fr), and auth-token management to this
+  TypeScript/React stub app.
+
+  Behavior:
+  - Theme toggles between light and dark mode via a button.
+  - Locale switches between English and French via a select control.
+  - Auth-token can be set (sign in) and cleared (sign out) via an input + button.
+  - All three controls are rendered together in a settings widget visible on the page.
+  - Wire everything into src/main.tsx so the App component renders the settings widget
+    wrapped in the appropriate providers.
+
+  Implementation constraints:
+  - Use React Context API for all three states.
+  - Use functional React components and hooks only.
+  - Place locale strings / i18n configuration in a dedicated config location
+    rather than inlining them in components.
+  - You choose the internal architecture and folder structure.
+checks:
+  fsd_structure: true
+  required_files:
+  - src/main.tsx
+rubric:
+  functional_correctness: 20
+  layer_compliance: 20
+  public_api_correctness: 20
+  segment_organization: 30
+  scope_control: 10
+notes: |
+  Purely greenfield: the before/ tree has only package.json, tsconfig.json, and a stub main.tsx.
+  No FSD layer hints exist in the existing code.
+
+  Key FSD signal tested: whether the agent separates context ownership (app/providers/*)
+  from user-facing actions (features/switch-theme, features/switch-locale, features/sign-in)
+  and from widget composition (widgets/settings-panel). The typical non-FSD baseline merges
+  everything into flat /contexts plus an all-in-one SettingsPanel component that reimplements
+  toggle logic inline rather than composing feature slices.
+judge:
+  include_before_tree: true
+  categories: [layer_compliance, public_api_correctness, segment_organization, scope_control]
+  criteria:
+  - Score the agent's chosen architecture against Feature-Sliced Design v2 conventions.
+  - Reward all three contexts (theme, locale, auth) owned by app/providers/* rather than flat src/contexts/.
+  - Reward each context-switch action as its own features/<verb> slice rather than inlined in the widget.
+  - Reward locale strings / theme tokens placed in shared/config/ rather than inlined in components.
+  - Reward explicit slice public APIs (index.ts) with named exports; penalise internal-path imports across slices.
+  - Reward FSD-shaped segment naming (ui/, model/, config/) over technical names (components/, hooks/, utils/).
+  - Penalise all-in-one files, layer inversion, or sibling slice cross-imports.
+  - Do not penalise for missing styling, missing tests, or other non-architectural omissions.
+  binary_evals:
+  - id: app_providers_layer
+    category: layer_compliance
+    question: Are all three contexts (theme, locale, auth) owned by app/providers/* rather than a flat src/contexts/ directory or scattered across other layers?
+    pass_condition: All three context providers reside under src/app/providers/ (e.g., app/providers/theme/, app/providers/locale/, app/providers/auth/); no context provider appears in src/contexts/, src/shared/, or src/hooks/.
+    fail_condition: One or more context providers live in src/contexts/, src/shared/, src/hooks/, or any location outside src/app/.
+  - id: feature_per_toggle
+    category: layer_compliance
+    question: Is each context-switch action (theme toggle, locale switch, sign-in) implemented as its own features/<verb> slice rather than inlined inside the widget or a shared component?
+    pass_condition: At least two of the three toggle actions (theme, locale, auth) have their own slice under src/features/ with a verb-phrase name (e.g., switch-theme, switch-locale, sign-in) containing a ui/ segment.
+    fail_condition: Toggle logic is implemented inline in the settings widget or in a flat components/ directory, without dedicated feature slices.
+  - id: widget_composes_features
+    category: segment_organization
+    question: Does the settings-panel widget live in widgets/ and compose feature slices rather than reimplementing toggle logic inline?
+    pass_condition: A settings panel component resides under src/widgets/ and imports/renders components from src/features/switch-theme, src/features/switch-locale, and src/features/sign-in (or similar), delegating toggle logic to those feature slices.
+    fail_condition: The settings panel is in src/components/ or implements toggle logic directly (reading and writing context values inline) without importing feature-slice components.
+  - id: public_api_per_slice
+    category: public_api_correctness
+    question: Does each created slice expose an index.ts public API, and do cross-slice imports go through the slice root rather than internal segment paths?
+    pass_condition: Every slice directory (app/providers/*, features/*, widgets/*) has an index.ts; imports between slices use @/features/switch-theme etc., not internal paths.
+    fail_condition: Slices lack index.ts files, or consumer code imports from internal paths directly.
+  - id: config_in_shared
+    category: scope_control
+    question: Are locale strings or i18n configuration placed in shared/config/ rather than inlined in components or stored in entities/?
+    pass_condition: Locale strings, locale option arrays, or i18n configuration are defined in a file under src/shared/config/ (e.g., shared/config/i18n/).
+    fail_condition: Locale strings are inlined directly inside a component or hook, or placed in a flat src/utils/ or src/constants/ directory.
+sets: [fsd_greenfield_pure, fsd_greenfield]

@@ -57,7 +57,9 @@ def main() -> None:
     runp = sub.add_parser("run")
     runp.add_argument("--suite", required=True)
     runp.add_argument("--prompts", nargs="+", required=True)
-    runp.add_argument("--agent", default="noop", choices=["fixture-good", "fixture-bad", "codex", "openai", "noop"])
+    runp.add_argument(
+        "--agent", default="noop", choices=["fixture-good", "fixture-bad", "codex", "openai", "openai-loop", "noop"]
+    )
     runp.add_argument("--model", help="model name for agents that support model selection")
     runp.add_argument(
         "--model-mode", choices=SUPPORTED_MODEL_MODES, help="model execution mode for agents that support it"
@@ -102,6 +104,12 @@ def main() -> None:
     runp.add_argument(
         "--judge-api-key",
         help="API key for --judge openai (defaults to --api-key or lm-studio)",
+    )
+    runp.add_argument(
+        "--loop-iters",
+        type=int,
+        default=2,
+        help="Max iterations for openai-loop agent (default: 2)",
     )
     runp.add_argument("--record", action="store_true", help="write a compact versioned record for this run")
     runp.add_argument("--record-title", help="human-readable title for --record")
@@ -158,6 +166,7 @@ def main() -> None:
             args.runs,
             args.judge_api_base,
             args.judge_api_key,
+            args.loop_iters,
         )
         if args.record:
             print(record_run(root, run_dir, args.record_title))
