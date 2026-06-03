@@ -13,8 +13,11 @@ MODEL_MODE_CONFIG = {
 SUPPORTED_MODEL_MODES = tuple(MODEL_MODE_CONFIG)
 
 # Copilot CLI exposes reasoning effort through `--effort <level>`.
+# Supported levels: low, medium, high. `xhigh` is not a valid Copilot effort level —
+# it is mapped to `high` (the maximum available) so callers that use `xhigh` consistently
+# across agents do not get a hard failure when switching to the Copilot backend.
 COPILOT_EFFORT = {
     "fast": "low",
     "medium": "medium",
-    "xhigh": "xhigh",
+    "xhigh": "high",
 }

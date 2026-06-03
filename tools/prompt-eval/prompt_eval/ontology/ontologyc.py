@@ -18,18 +18,25 @@ def _resolve_command(repo: Path, subcommand: str, file_abs: Path) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    SUPPORTED_SUBCOMMANDS = ("check", "compile")
     args = sys.argv[1:] if argv is None else argv
     if len(args) != 2:
         print("usage: peval-ontologyc <check|compile> <package.yaml>", file=sys.stderr)
         return 2
     subcommand, file = args
+    if subcommand not in SUPPORTED_SUBCOMMANDS:
+        print(
+            f"unsupported subcommand {subcommand!r}; expected one of: {', '.join(SUPPORTED_SUBCOMMANDS)}",
+            file=sys.stderr,
+        )
+        return 2
     repo_env = os.environ.get("ONTOLOGY_REPO")
     if not repo_env:
         print("ONTOLOGY_REPO is not set; cannot locate the ontologyc compiler", file=sys.stderr)
         return 2
     repo = Path(repo_env).expanduser()
-    if not repo.exists():
-        print(f"ONTOLOGY_REPO does not exist: {repo}", file=sys.stderr)
+    if not repo.is_dir():
+        print(f"ONTOLOGY_REPO is not a directory: {repo}", file=sys.stderr)
         return 2
     file_abs = Path(file).resolve()
     if not file_abs.exists():

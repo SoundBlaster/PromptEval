@@ -14,6 +14,10 @@ task: |
 checks:
   commands:
   - ["peval-validate-stage", "09", "output.yaml"]
+  # Full compiler check: requires ONTOLOGY_REPO to point at the Ontology repository.
+  # Skips gracefully (non-zero exit → commands_failed) when ONTOLOGY_REPO is not set,
+  # so the suite still runs offline — it just won't have the compiler signal.
+  - ["peval-ontologyc", "check", "output.yaml"]
   required_files:
   - output.yaml
   forbidden_regex:

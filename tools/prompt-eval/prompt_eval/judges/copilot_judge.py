@@ -32,8 +32,10 @@ def judge_copilot(
 
     work_dir = Path(tempfile.mkdtemp(prefix="peval-copilot-judge-"))
     judge_prompt = build_judge_prompt(case, prompt_text, diff, deterministic_summary, before_tree=before_tree)
-    # Copilot reads the judge rubric from the prompt; env var overrides keep it isolated from
-    # the user's global Copilot config the same way the codex judge uses a temp CODEX_HOME.
+    # Isolation: a fresh temp working directory ensures the judge has no access to sandbox
+    # files. Global MCP servers are disabled via --disable-builtin-mcps. Auth (gh/keychain)
+    # is left intact. Unlike the codex judge there is no separate home-dir isolation because
+    # Copilot does not expose a COPILOT_HOME equivalent for config overrides.
     env = os.environ.copy()
     cmd = [*prefix, "-p", judge_prompt, "--allow-all-tools", "--allow-all-paths", "--disable-builtin-mcps"]
     if model:

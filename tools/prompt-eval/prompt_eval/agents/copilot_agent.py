@@ -18,7 +18,12 @@ def copilot_command(copilot_bin: str | None = None) -> list[str] | None:
     """
     selected = copilot_bin or os.environ.get("PEVAL_COPILOT_BIN")
     if selected:
-        return [selected] if Path(selected).exists() or shutil.which(selected) else None
+        expanded = Path(selected).expanduser()
+        if expanded.exists():
+            return [str(expanded)]
+        if shutil.which(selected):
+            return [selected]
+        return None
     if shutil.which("copilot"):
         return ["copilot"]
     if shutil.which("gh"):

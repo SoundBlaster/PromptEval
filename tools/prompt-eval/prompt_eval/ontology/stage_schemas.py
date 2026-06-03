@@ -95,7 +95,20 @@ STAGE_SCHEMAS: dict[str, StageSchema] = {
         required=["schemaVersion", "metadata", "spec"],
         nested_required={
             "metadata": ["status", "sourceIntentId", "producedBy", "confidence"],
-            "spec": ["governingConcept", "classes", "relations", "policies", "stateMachines", "assumptions"],
+            # namespaceCandidate, protocols, and validationNotes are required by the stage 06
+            # contract's Output Schema (06_OntologySynthesizer.prompt.md). Including them here
+            # ensures the validator catches drafts that silently omit these sections.
+            "spec": [
+                "namespaceCandidate",
+                "governingConcept",
+                "classes",
+                "relations",
+                "protocols",
+                "policies",
+                "stateMachines",
+                "assumptions",
+                "validationNotes",
+            ],
         },
         nested_enums={"metadata.status": ["candidate"]},
         forbid_kinds=["DomainOntologyPackage"],
