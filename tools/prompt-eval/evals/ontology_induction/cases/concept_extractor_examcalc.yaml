@@ -1,0 +1,55 @@
+id: concept_extractor_examcalc
+title: Stage 03 Concept Extractor on the exam-controlled calculator intent
+fixture: concept_extractor_examcalc
+task: |
+  Read `input.yaml` (a ConceptExtractionInput: intent + classification + domainFrame for an
+  exam-controlled tablet calculator). Apply the Concept Extractor prompt contract and write the
+  resulting `CandidateConceptSet` to `output.yaml`.
+
+  Do not modify `input.yaml`. Emit only the stage artifact, not a draft or a package.
+checks:
+  commands:
+  - ["peval-validate-stage", "03", "output.yaml"]
+  required_files:
+  - output.yaml
+  forbidden_regex:
+  - pattern: 'a/input\.yaml'
+    target: diff
+    reason: input.yaml is frozen upstream context and must not be edited
+  - pattern: 'kind:\s*(DomainOntologyPackage|ProductOntologyDraft)'
+    target: diff
+    reason: stage 03 must emit CandidateConceptSet, not a later-stage artifact
+  max_changed_files: 2
+rubric:
+  concept_coverage: 35
+  implementation_leakage: 25
+  relation_quality: 20
+  uncertainty_handling: 20
+notes: |
+  Authentic ground truth (SPECS/ontology/packages/examcalc) has ExamPolicyProfile as the
+  governing concept and includes capabilities, commands, events, policies, and evidence
+  (AuditLogEntry), not only nouns. A weak extraction lists Calculator/Screen/Button as core
+  concepts or omits the policy/evidence dimension.
+judge:
+  categories: [concept_coverage, implementation_leakage, uncertainty_handling]
+  criteria:
+  - Reward coverage across meta-classes (actors, entities, capabilities, commands, events, policies, risks/evidence), not just entities.
+  - Penalize treating UI surface (screens, buttons) or storage (tables) as core domain concepts.
+  - Reward concrete rationale and confidence per concept and explicit needsClarification where the intent is thin.
+  binary_evals:
+  - id: governing_concept_present
+    category: concept_coverage
+    question: Does the concept set include ExamPolicyProfile (the governing concept) or explicitly justify its absence?
+    pass_condition: A concept with id/label ExamPolicyProfile (or a clearly equivalent governing policy concept) is present.
+    fail_condition: No governing policy concept is present and its absence is not justified.
+  - id: policy_and_evidence_candidates
+    category: concept_coverage
+    question: Are policy candidates and trust/evidence candidates (e.g. audit/evidence) present, as the domain is policy- and trust-heavy?
+    pass_condition: At least one Policy meta-class concept and at least one Risk or EvidenceRequirement concept are present.
+    fail_condition: The set contains only entities/capabilities with no policy and no evidence/risk concepts.
+  - id: no_ui_leakage
+    category: implementation_leakage
+    question: Did the extractor avoid promoting UI/implementation surface (screens, buttons, endpoints, tables) to core domain concepts?
+    pass_condition: No screen/button/endpoint/table concept is modeled as a core domain concept without domain justification.
+    fail_condition: UI or storage surface appears as a core domain concept.
+sets: [tuning]

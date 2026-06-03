@@ -5,7 +5,7 @@ from pathlib import Path
 from collections import defaultdict
 from .config import suite_case_sets
 from .case_generator import DEFAULT_GENERATOR_MODEL, DEFAULT_GENERATOR_MODEL_MODE, generate_case
-from .agents.codex_agent import SUPPORTED_MODEL_MODES
+from .agents.effort import SUPPORTED_MODEL_MODES
 from .records import record_run
 from .runner import run_suite
 
@@ -58,13 +58,16 @@ def main() -> None:
     runp.add_argument("--suite", required=True)
     runp.add_argument("--prompts", nargs="+", required=True)
     runp.add_argument(
-        "--agent", default="noop", choices=["fixture-good", "fixture-bad", "codex", "openai", "openai-loop", "noop"]
+        "--agent",
+        default="noop",
+        choices=["fixture-good", "fixture-bad", "codex", "copilot", "openai", "openai-loop", "noop"],
     )
     runp.add_argument("--model", help="model name for agents that support model selection")
     runp.add_argument(
         "--model-mode", choices=SUPPORTED_MODEL_MODES, help="model execution mode for agents that support it"
     )
     runp.add_argument("--codex-bin", help="path or command name for the Codex CLI binary")
+    runp.add_argument("--copilot-bin", help="path or command name for the Copilot CLI binary")
     runp.add_argument("--api-base", help="OpenAI-compatible API base URL for the openai agent")
     runp.add_argument("--api-key", help="API key for the openai agent (default: lm-studio)")
     runp.add_argument(
@@ -89,8 +92,8 @@ def main() -> None:
     runp.add_argument(
         "--judge",
         default="none",
-        choices=["none", "mock", "subagent", "openai"],
-        help="optional LLM-as-judge layer",
+        choices=["none", "mock", "subagent", "copilot", "openai"],
+        help="optional LLM-as-judge layer (copilot = GitHub Copilot CLI; subagent = Codex CLI)",
     )
     runp.add_argument("--judge-model", help="model name for the LLM judge")
     runp.add_argument(
@@ -167,6 +170,7 @@ def main() -> None:
             args.judge_api_base,
             args.judge_api_key,
             args.loop_iters,
+            args.copilot_bin,
         )
         if args.record:
             print(record_run(root, run_dir, args.record_title))

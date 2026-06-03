@@ -15,6 +15,11 @@ dev = ["pytest", "ruff>=0.15.0"]
 
 [project.scripts]
 peval = "prompt_eval.cli:main"
+peval-validate-stage = "prompt_eval.ontology.validate_stage:main"
+peval-ontologyc = "prompt_eval.ontology.ontologyc:main"
+
+[tool.setuptools.packages.find]
+include = ["prompt_eval*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

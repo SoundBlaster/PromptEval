@@ -12,8 +12,10 @@ from .models import CaseRunResult
 from .agents.fixture_agent import apply_fixture_solution
 from .agents.mock_agent import run_mock
 from .agents.codex_agent import run_codex
+from .agents.copilot_agent import run_copilot
 from .agents.openai_agent import _gather_files, run_openai, run_openai_loop
 from .judges.base import JudgeResult
+from .judges.copilot_judge import judge_copilot
 from .judges.mock_judge import judge_mock
 from .judges.openai_judge import judge_openai
 from .judges.subagent_judge import judge_subagent
@@ -81,6 +83,7 @@ def _run_judge(
     judge_api_base: str | None = None,
     judge_api_key: str | None = None,
     before_tree: str | None = None,
+    copilot_bin: str | None = None,
 ) -> JudgeResult | None:
     if judge == "none":
         return None
@@ -95,6 +98,17 @@ def _run_judge(
             model,
             model_mode,
             codex_bin,
+            before_tree=before_tree,
+        )
+    if judge == "copilot":
+        return judge_copilot(
+            case,
+            prompt_text,
+            diff,
+            _check_summary(checks),
+            model,
+            model_mode,
+            copilot_bin,
             before_tree=before_tree,
         )
     if judge == "openai":
@@ -132,6 +146,7 @@ def run_suite(
     judge_api_base: str | None = None,
     judge_api_key: str | None = None,
     loop_iters: int = 2,
+    copilot_bin: str | None = None,
 ) -> Path:
     run_id = f"{datetime.datetime.utcnow().strftime('%Y%m%d-%H%M%S-%f')}-{uuid.uuid4().hex[:8]}"
     run_dir = root / "runs" / run_id
@@ -145,6 +160,7 @@ def run_suite(
         "model": model,
         "model_mode": model_mode,
         "codex_bin": codex_bin,
+        "copilot_bin": copilot_bin,
         "case_sets": case_sets or [],
         "judge": judge,
         "judge_model": judge_model,
@@ -174,6 +190,8 @@ def run_suite(
                         ar = apply_fixture_solution(sandbox, fixture_root, "bad")
                     elif agent == "codex":
                         ar = run_codex(sandbox, _agent_task(case), ptxt, model, model_mode, codex_bin)
+                    elif agent == "copilot":
+                        ar = run_copilot(sandbox, _agent_task(case), ptxt, model, model_mode, copilot_bin)
                     elif agent == "openai":
                         ar = run_openai(
                             sandbox,
@@ -219,6 +237,7 @@ def run_suite(
                         judge_api_base=judge_api_base or api_base,
                         judge_api_key=judge_api_key or api_key,
                         before_tree=before_tree,
+                        copilot_bin=copilot_bin,
                     )
                     score = score_from_checks(checks, case.rubric, judge_result)
                     case_dir = run_dir / Path(p).stem / case.id

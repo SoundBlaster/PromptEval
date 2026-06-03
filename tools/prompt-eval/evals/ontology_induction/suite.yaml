@@ -1,0 +1,10 @@
+name: ontology_induction
+cases:
+- path: concept_extractor_examcalc.yaml
+  sets:
+  - tuning
+  - stage_03
+- path: yaml_assembler_examcalc.yaml
+  sets:
+  - tuning
+  - stage_09

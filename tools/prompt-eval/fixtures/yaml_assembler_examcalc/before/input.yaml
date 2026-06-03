@@ -1,0 +1,154 @@
+# Frozen upstream input for stage 09 (YAML Assembler), examcalc golden intent.
+# Reviewed draft + approved critique + competency questions. The assembler must convert this
+# into a DomainOntologyPackage that passes `ontologyc check`. Not regenerated per run.
+kind: YAMLAssemblyInput
+
+draft:
+  kind: ProductOntologyDraft
+  schemaVersion: ontology-induction.specgraph.io/v1alpha1
+  metadata:
+    status: candidate
+    sourceIntentId: golden.exam-controlled-calculator
+    producedBy: OntologySynthesizerAgent
+    confidence: 0.78
+  spec:
+    namespaceCandidate: examcalc
+    governingConcept:
+      id: ExamPolicyProfile
+      rationale: >-
+        Signed, approved, versioned policy that governs which calculator functions are allowed
+        or denied for an exam; controls trust, lifecycle, and audit.
+    classes:
+      - id: Exam
+        metaClass: DomainEntity
+        implements: [sg:Auditable]
+        description: University exam that requires a controlled calculator policy.
+      - id: ExamSession
+        metaClass: DomainEntity
+        implements: [sg:TimeBound]
+        description: Time-bounded sitting of an exam.
+      - id: TabletDevice
+        metaClass: DomainEntity
+        implements: [sg:DeviceBound, sg:Auditable]
+        description: Managed tablet used during an exam.
+      - id: CalculatorFunction
+        metaClass: Capability
+        implements: [sg:RestrictableCapability]
+        description: Calculator capability that can be allowed or denied by an exam policy.
+      - id: FunctionSet
+        metaClass: DomainEntity
+        description: Named collection of calculator functions.
+      - id: ExamPolicyProfile
+        metaClass: DomainEntity
+        central: true
+        implements: [sg:Versioned, sg:Approvable, sg:Signable, sg:Auditable, sg:TimeBound]
+        description: Signed and approved policy that governs allowed calculator behavior for an exam.
+      - id: ExamModeSession
+        metaClass: DomainEntity
+        lifecycle: ExamModeSessionState
+        implements: [sg:Auditable, sg:DeviceBound]
+        description: Runtime enforcement session for controlled calculator use.
+      - id: PolicyViolation
+        metaClass: Event
+        implements: [sg:Auditable]
+        description: Attempted or detected violation of the active exam calculator policy.
+      - id: AuditLogEntry
+        metaClass: DomainEntity
+        implements: [sg:Auditable]
+        description: Durable audit record for policy enforcement and review.
+      - id: StartExamMode
+        metaClass: Command
+        description: Request to start exam mode for a tablet and selected exam policy.
+      - id: VerifyDeviceAndPolicy
+        metaClass: Command
+        description: Verify that the active policy is signed and available on the target device.
+      - id: LockCalculator
+        metaClass: Command
+        description: Lock calculator access after a detected policy violation.
+      - id: EndExamMode
+        metaClass: Command
+        description: Complete an active exam mode session.
+    relations:
+      - id: requires_policy
+        domain: Exam
+        range: ExamPolicyProfile
+        cardinality: {min: 1, max: 1}
+      - id: has_session
+        domain: Exam
+        range: ExamSession
+        cardinality: {min: 0, max: "*"}
+      - id: allows
+        domain: ExamPolicyProfile
+        range: CalculatorFunction
+        cardinality: {min: 0, max: "*"}
+      - id: denies
+        domain: ExamPolicyProfile
+        range: CalculatorFunction
+        cardinality: {min: 0, max: "*"}
+      - id: includes_function
+        domain: FunctionSet
+        range: CalculatorFunction
+        cardinality: {min: 0, max: "*"}
+      - id: enforces
+        domain: ExamModeSession
+        range: ExamPolicyProfile
+        cardinality: {min: 1, max: 1}
+      - id: occurred_during
+        domain: PolicyViolation
+        range: ExamModeSession
+        cardinality: {min: 1, max: 1}
+      - id: records
+        domain: AuditLogEntry
+        range: [PolicyViolation, ExamModeSession]
+        cardinality: {min: 0, max: "*"}
+    protocols: []
+    policies:
+      - id: DenyByDefaultPolicy
+        enforceability: runtime
+        appliesTo: [ExamPolicyProfile]
+        text: Any calculator function not explicitly allowed by the active policy must be denied.
+      - id: PolicyMustBeSigned
+        enforceability: runtime
+        appliesTo: [ExamPolicyProfile]
+        text: Exam policy profile must be signed before activation.
+      - id: PolicyMustBeDeviceVerifiable
+        enforceability: runtime
+        appliesTo: [ExamModeSession]
+        text: Exam mode session must verify the active policy on the device before entering active state.
+      - id: NoNetworkDuringExam
+        enforceability: runtime
+        appliesTo: [ExamModeSession]
+        text: Calculator app must not access network during exam mode unless explicitly allowed.
+    stateMachines:
+      - id: ExamModeSessionState
+        states: [not_started, pending_device_verification, active, violation_detected, locked, completed, failed]
+        transitions:
+          - {from: not_started, to: pending_device_verification, command: StartExamMode}
+          - {from: pending_device_verification, to: active, command: VerifyDeviceAndPolicy}
+          - {from: active, to: violation_detected, event: PolicyViolation}
+          - {from: violation_detected, to: locked, command: LockCalculator}
+          - {from: active, to: completed, command: EndExamMode}
+    assumptions:
+      - Exam policies are authored before the exam and signed by an approving authority.
+    validationNotes:
+      - Governing concept ExamPolicyProfile is marked central; relations resolve to declared classes.
+
+critique:
+  kind: OntologyCritiqueReport
+  status: approved_for_yaml
+  issues: []
+  notes: Draft maps cleanly to DomainOntologyPackage; no hard-reject criteria triggered.
+
+competencyQuestions:
+  kind: CompetencyQuestionSet
+  questions:
+    - id: CQ-001
+      question: Which calculator functions are allowed for a given exam?
+    - id: CQ-002
+      question: Which functions are explicitly denied for an exam?
+    - id: CQ-003
+      question: Can an ExamModeSession become active if the policy is unsigned or not device-verified?
+    - id: CQ-004
+      question: What evidence proves the correct policy was enforced during the exam?
+
+targetSchema: SPECS/ontology/domain-ontology-package.schema.yaml
