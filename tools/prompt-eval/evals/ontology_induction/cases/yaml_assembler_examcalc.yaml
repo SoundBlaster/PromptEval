@@ -1,0 +1,63 @@
+id: yaml_assembler_examcalc
+title: Stage 09 YAML Assembler on the exam-controlled calculator intent
+fixture: yaml_assembler_examcalc
+task: |
+  Read `input.yaml` (a YAMLAssemblyInput: reviewed ProductOntologyDraft + approved critique +
+  competency questions). Apply the YAML Assembler prompt contract to produce a valid
+  DomainOntologyPackage and write it to `output.yaml`.
+
+  Rules:
+  - Use only fields from the current DomainOntologyPackage schema.
+  - Keep YAML inert: no hooks, code, or executable-looking content.
+  - Do not modify `input.yaml`.
+  - The output must be parseable by `peval-ontologyc check`.
+checks:
+  commands:
+  - ["peval-validate-stage", "09", "output.yaml"]
+  required_files:
+  - output.yaml
+  forbidden_regex:
+  - pattern: 'a/input\.yaml'
+    target: diff
+    reason: input.yaml is frozen upstream context and must not be edited
+  - pattern: 'kind:\s*(ProductOntologyDraft|CandidateConceptSet)'
+    target: diff
+    reason: stage 09 must emit DomainOntologyPackage, not a draft
+  - pattern: 'approvalStatus:\s*approved'
+    target: diff
+    reason: assembler must not approve or publish the package
+  max_changed_files: 2
+rubric:
+  yaml_readiness: 40
+  implementation_leakage: 25
+  concept_coverage: 20
+  scope_control: 15
+notes: |
+  The authentic examcalc package lives at SPECS/ontology/packages/examcalc/domain-ontology-package.yaml
+  and has ExamPolicyProfile central:true, 13 classes, 8 relations, 4 policies, 1 state machine.
+  A weak assembler drops the state machine, marks approvalStatus:approved, or adds unsupported
+  YAML fields from the draft. The canonical governing concept is ExamPolicyProfile.
+judge:
+  categories: [yaml_readiness, implementation_leakage, concept_coverage]
+  criteria:
+  - Reward using only DomainOntologyPackage schema fields (no unsupported extensions from the draft).
+  - Reward keeping approvalStatus as draft, not approved.
+  - Penalize omitting the ExamModeSessionState state machine when it is present in the input draft.
+  - Penalize adding UI/implementation details as core domain classes.
+  binary_evals:
+  - id: governing_concept_central
+    category: concept_coverage
+    question: Is ExamPolicyProfile present as a class and marked central:true?
+    pass_condition: output.yaml contains an ExamPolicyProfile class with central:true.
+    fail_condition: ExamPolicyProfile is absent or central:true is missing.
+  - id: state_machine_present
+    category: yaml_readiness
+    question: Does the package include the ExamModeSessionState state machine?
+    pass_condition: stateMachines section contains ExamModeSessionState with at least the expected states and transitions.
+    fail_condition: stateMachines is empty or ExamModeSessionState is absent.
+  - id: approval_not_overridden
+    category: scope_control
+    question: Is approvalStatus set to draft (not approved/published)?
+    pass_condition: metadata.approvalStatus is draft or absent.
+    fail_condition: metadata.approvalStatus is approved or published.
+sets: [tuning]

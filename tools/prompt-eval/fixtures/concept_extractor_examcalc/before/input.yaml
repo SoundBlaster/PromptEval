@@ -1,0 +1,55 @@
+# Frozen upstream input for stage 03 (Concept Extractor), examcalc golden intent.
+# This is the reviewed output of stages 01-02 and is intentionally NOT regenerated per run,
+# so the eval isolates the Concept Extractor prompt rather than upstream noise.
+kind: ConceptExtractionInput
+
+intent:
+  kind: ProductIntent
+  text: >-
+    Build a calculator application for university tablets used during exams. Different exams
+    may allow different calculator functions. The system must enforce the active exam policy,
+    deny unapproved functions by default, verify that the policy is signed and available on
+    the device, prevent network access during exam mode, and produce audit records for
+    violations and enforcement events.
+  sourceId: golden.exam-controlled-calculator
+
+classification:
+  kind: IntentClassification
+  intentType: ProductCreationIntent
+  domain: education
+  subdomain: exam-controlled computation
+  productType: tablet calculator application
+  criticality: high
+  primaryConcern: >-
+    Exam integrity depends on enforcing a signed, device-verified policy and producing audit
+    evidence; a calculator that silently allows unapproved functions breaks trust.
+  requiresExistingOntology: false
+  uncertainties:
+    - id: U1
+      question: Are exam policies authored centrally or per instructor?
+    - id: U2
+      question: Is offline-only enforcement required, or is intermittent network allowed between sessions?
+  confidence: 0.7
+
+domainFrame:
+  kind: DomainFrame
+  surfaceProduct: calculator application
+  deepDomain: exam-controlled computation
+  governingConceptCandidate:
+    id: ExamPolicyProfile
+    rationale: >-
+      Controls which calculator functions are permitted, must be signed and device-verified,
+      and governs trust, lifecycle, and audit for an exam.
+    confidence: 0.8
+  boundedContexts:
+    - id: PolicyAuthoring
+      rationale: Defining and signing the set of allowed/denied functions for an exam.
+    - id: ExamRuntimeEnforcement
+      rationale: Enforcing the active policy on a device during a live exam session.
+  pressures:
+    policyHeavy: true
+    lifecycleHeavy: true
+    trustAndEvidenceHeavy: true
+  notes: >-
+    Calculator functions are restrictable capabilities, not the governing concept. Screens and
+    buttons are implementation surface, not core domain concepts.

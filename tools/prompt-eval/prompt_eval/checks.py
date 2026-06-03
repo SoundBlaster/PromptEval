@@ -1,9 +1,11 @@
 from __future__ import annotations
 from pathlib import Path
 import fnmatch
+import os
 import re
 import shlex
 import subprocess
+import sys
 from .fsd_check import check_fsd_structure
 from .models import EvalCase, CheckResult
 
@@ -51,10 +53,21 @@ def python_files_blob(sandbox: Path, patterns: list[str] | None = None) -> str:
     return "\n".join(chunks)
 
 
+def _check_env() -> dict[str, str]:
+    # Prepend the directory that hosts this Python interpreter so that console scripts
+    # installed in the same virtual environment (e.g. peval-validate-stage) are found
+    # even when the venv is not explicitly activated in the calling shell.
+    env = os.environ.copy()
+    bin_dir = str(Path(sys.executable).parent)
+    env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
+    return env
+
+
 def run_checks(case: EvalCase, sandbox: Path, diff: str) -> list[CheckResult]:
+    env = _check_env()
     out = []
     for cmd in case.checks.commands:
-        p = subprocess.run(command_argv(cmd), cwd=sandbox, text=True, capture_output=True)
+        p = subprocess.run(command_argv(cmd), cwd=sandbox, text=True, capture_output=True, env=env)
         out.append(CheckResult(p.returncode == 0, f"command:{command_name(cmd)}", (p.stdout + p.stderr)[-400:]))
     for req in case.checks.required_files:
         out.append(CheckResult((sandbox / req).exists(), f"required_file:{req}"))
